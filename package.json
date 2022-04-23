@@ -1,6 +1,6 @@
 {
   "name": "rt-router",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Real Time Router",
   "main": "index.js",
   "scripts": {
