@@ -1,4 +1,4 @@
-import type { Server } from 'http'
+import type { IncomingMessage, Server } from 'http'
 import path from 'path'
 import { Server as wsDefaultServer } from 'ws'
 import sseServer, { TSseEvents, TSseServers } from './libs/sse'
@@ -33,6 +33,7 @@ export type TRequestSend = {
   room?: string
   path?: string
   msg: any
+  req: IncomingMessage
 }
 
 export default class RTServer {
@@ -70,7 +71,7 @@ export default class RTServer {
           // curl -X POST -d '{"type":"websocket","room":"public","msg":"hello"}' http://localhost:8080/rt/echo
           req.on('end', () => {
             try {
-              obj = JSON.parse(data)
+              obj = Object.assign(JSON.parse(data), { req })
               if (events.onEcho) {
                 events
                   .onEcho(obj)
