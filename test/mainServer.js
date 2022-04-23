@@ -24,6 +24,7 @@ const servers = new __1.default(server, { rt, rootPath: '/rt', echoServer: true 
     },
     onEcho: async (wsClient) => {
         console.log(`onEcho ${wsClient.id}`);
+        return wsClient;
     },
 });
 console.log(servers);

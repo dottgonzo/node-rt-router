@@ -19,7 +19,7 @@ export interface TClientConnected extends TClient {
 export type TOnConnected = (client: TClientConnected) => Promise<void>
 export type TOnConnecting = (client: TClient) => Promise<any>
 export type TOnMessage = (client: TClientConnected, data: string) => Promise<void>
-export type TOnEchoMessage = (obj: TRequestSendWithReq) => Promise<void>
+export type TOnEchoMessage = (obj: TRequestSendWithReq) => Promise<TRequestSendWithReq>
 
 export type TEvents = {
   onConnected?: TOnConnected
@@ -77,8 +77,8 @@ export default class RTServer {
               if (events.onEcho) {
                 events
                   .onEcho(Object.assign(JSON.parse(data), { req }))
-                  .then(() => {
-                    that.sendBy(obj)
+                  .then((r: TRequestSend) => {
+                    that.sendBy(r)
                   })
                   .catch((err) => {
                     console.error('onEcho error:', err)

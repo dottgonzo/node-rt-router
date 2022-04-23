@@ -24,6 +24,7 @@ const servers = new genServers(
     },
     onEcho: async (wsClient) => {
       console.log(`onEcho ${wsClient.id}`)
+      return wsClient
     },
   }
 )
