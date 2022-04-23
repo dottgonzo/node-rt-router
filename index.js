@@ -25,7 +25,6 @@ class RTServer {
                 try {
                     let data = '';
                     let obj;
-                    const that = this;
                     req.on('data', (chunk) => {
                         data += chunk;
                     });

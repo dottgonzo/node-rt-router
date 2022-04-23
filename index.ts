@@ -63,7 +63,6 @@ export default class RTServer {
         try {
           let data = ''
           let obj: TRequestSend
-          const that = this
           req.on('data', (chunk) => {
             data += chunk
           })
