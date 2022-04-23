@@ -1,6 +1,6 @@
 //
 import { createServer, type RequestListener } from 'http'
-import { wsServer } from '../index'
+import wsServer from '../libs/ws'
 
 const pingRequest: RequestListener = (req, res) => {
   if (req.url === '/ping') {

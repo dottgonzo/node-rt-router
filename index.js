@@ -1,97 +1,103 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.wsServer = void 0;
-const ws_1 = require("ws");
-function setAlive(ws) {
-    ws.isAlive = true;
-}
-function unsetClient(wsServer, wsClient, interval, onExit) {
-    if (onExit) {
-        try {
-            onExit(wsServer, wsClient);
-        }
-        catch (err) {
-            console.error('onExitError', err);
+const path_1 = __importDefault(require("path"));
+const sse_1 = __importDefault(require("./libs/sse"));
+const ws_1 = __importDefault(require("./libs/ws"));
+class RTServer {
+    constructor(server, options, events) {
+        this.wsServers = [];
+        this.sseServers = [];
+        if (!options.rootPath)
+            options.rootPath = '/';
+        for (const rt of options.rt) {
+            switch (rt.type) {
+                case 'websocket':
+                    const wsOptions = {};
+                    if (events?.onConnected) {
+                        wsOptions.onEnter = (s, c) => events.onConnected(c);
+                    }
+                    if (events?.onConnecting) {
+                        wsOptions.onUpgrade = (s, c) => events.onConnecting(c);
+                    }
+                    if (events?.onMessage) {
+                        wsOptions.onMessage = (s, c, data) => events.onMessage(c, data);
+                    }
+                    const wss = (0, ws_1.default)(server, wsOptions, { serverPath: path_1.default.join(options.rootPath, rt.path) });
+                    this.wsServers.push(wss);
+                    break;
+                case 'sse':
+                    const sseOptions = {};
+                    if (events?.onConnected) {
+                        sseOptions.onConnected = (s, c) => events.onConnected(c);
+                    }
+                    if (events?.onConnecting) {
+                        sseOptions.onConnecting = (s, c) => events.onConnecting(c);
+                    }
+                    const sse = (0, sse_1.default)(server, sseOptions, { serverPath: path_1.default.join(options.rootPath, rt.path) });
+                    this.sseServers.push(sse);
+                    break;
+                default:
+                    throw new Error(`unknown rt type: ${rt.type}`);
+            }
         }
     }
-    clearInterval(interval);
-    wsClient.terminate();
-}
-function wsServer(server, events, options) {
-    if (!options)
-        options = {};
-    if (!options.serverPath)
-        options.serverPath = '/';
-    const wss = new ws_1.WebSocketServer({ noServer: true });
-    wss.on('connection', function connection(ws) {
-        setAlive(ws);
-        ws.on('pong', () => {
-            setAlive(ws);
-        });
-        ws.on('ping', () => {
-            setAlive(ws);
-        });
-        ws.on('message', (data) => {
-            setAlive(ws);
-            console.log('received: %s', data);
-        });
-        const interval = setInterval(function ping() {
-            for (const c of wss.clients) {
-                if (!c.isAlive) {
-                    return unsetClient(wss, c, interval, events.onExit);
-                }
-                c.isAlive = false;
-                c.ping(() => { });
-            }
-        }, 30000);
-        wss.on('close', () => {
-            unsetClient(wss, ws, interval, events.onExit);
-        });
-        if (events.onEnter) {
-            try {
-                events.onEnter(wss, ws);
-            }
-            catch (err) {
-                unsetClient(wss, ws, interval, events.onExit);
-            }
-        }
-    });
-    server.on('upgrade', function upgrade(request, socket, head) {
-        let mainUri;
-        if (request?.url) {
-            mainUri = request.url.split('?')[0];
-        }
-        else {
-            mainUri = '/';
-        }
-        if (mainUri === options?.serverPath) {
-            wss.handleUpgrade(request, socket, head, (ws, request) => {
-                ;
-                ws.id = Math.floor(Math.random() * 1000000).toString() + '-' + Date.now();
-                ws.isAlive = true;
-                ws.urlParsed = request.url || '/';
-                if (events.onUpgrade) {
-                    try {
-                        events.onUpgrade(wss, ws);
-                        wss.emit('connection', ws, request);
-                    }
-                    catch (err) {
-                        socket.destroy();
-                    }
-                }
-                else {
-                    wss.emit('connection', ws, request);
+    send(id, msg) {
+        let found = false;
+        for (const ws of this.wsServers) {
+            ;
+            ws.clients.forEach((client) => {
+                if (client.id === id) {
+                    client.send(msg);
+                    found = true;
+                    return;
                 }
             });
         }
-        else if (options?.single) {
-            socket.destroy();
+        if (found)
+            return;
+        for (const ws of this.sseServers) {
+            ;
+            ws.clients.forEach((client) => {
+                if (client.id === id) {
+                    client.send(msg);
+                    found = true;
+                    return;
+                }
+            });
         }
-        else {
-            console.log('forward server after wsserver configuration for ' + options?.serverPath);
+    }
+    sendToRoom(room, msg) {
+        for (const ws of this.wsServers) {
+            ;
+            ws.clients.forEach((client) => {
+                if (client.room === room) {
+                    client.send(msg);
+                }
+            });
         }
-    });
-    return wss;
+        for (const se of this.sseServers) {
+            se.clients.forEach((client) => {
+                if (client.room === room) {
+                    client.send(msg);
+                }
+            });
+        }
+    }
+    broadcast(msg) {
+        for (const ws of this.wsServers) {
+            ws.clients.forEach((client) => {
+                client.send(msg);
+            });
+        }
+        for (const se of this.sseServers) {
+            se.clients.forEach((client) => {
+                client.send(msg);
+            });
+        }
+    }
 }
-exports.wsServer = wsServer;
+exports.default = RTServer;
 //# sourceMappingURL=index.js.map

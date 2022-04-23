@@ -9,7 +9,15 @@
       "request": "launch",
       "name": "Start Test Server",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/test/server.js",
+      "program": "${workspaceFolder}/test/mainServer.js",
+      "outFiles": ["${workspaceFolder}/**/*.js"]
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Start Ws Server",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/test/wsServer.js",
       "outFiles": ["${workspaceFolder}/**/*.js"]
     }
   ]
