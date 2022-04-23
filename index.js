@@ -13,7 +13,7 @@ class RTServer {
         if (!options.rootPath)
             options.rootPath = '/';
         server.on('request', (req, res) => {
-            if (req.method === 'GET' && req.url === path_1.default.join(options.rootPath || '/', 'ping')) {
+            if (req.method === 'GET' && req.url === path_1.default.join(options.rootPath || '/', '/ping')) {
                 res.setHeader('Content-Type', 'application/json');
                 res.writeHead(200);
                 return res.end(`{pong:true}`);

@@ -49,7 +49,7 @@ export default class RTServer {
   ) {
     if (!options.rootPath) options.rootPath = '/'
     server.on('request', (req, res) => {
-      if (req.method === 'GET' && req.url === path.join(options.rootPath || '/', 'ping')) {
+      if (req.method === 'GET' && req.url === path.join(options.rootPath || '/', '/ping')) {
         res.setHeader('Content-Type', 'application/json')
 
         res.writeHead(200)
