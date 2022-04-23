@@ -19,7 +19,7 @@ export interface TClientConnected extends TClient {
 export type TOnConnected = (client: TClientConnected) => Promise<void>
 export type TOnConnecting = (client: TClient) => Promise<any>
 export type TOnMessage = (client: TClientConnected, data: string) => Promise<void>
-export type TOnEchoMessage = (obj: TRequestSend) => Promise<void>
+export type TOnEchoMessage = (obj: TRequestSendWithReq) => Promise<void>
 
 export type TEvents = {
   onConnected?: TOnConnected
@@ -35,7 +35,9 @@ export type TRequestSend = {
   msg: any
   req: IncomingMessage
 }
-
+export interface TRequestSendWithReq extends TRequestSend {
+  req: IncomingMessage
+}
 export default class RTServer {
   wsServers: wsDefaultServer[] = []
   sseServers: TSseServers[] = []
@@ -71,10 +73,10 @@ export default class RTServer {
           // curl -X POST -d '{"type":"websocket","room":"public","msg":"hello"}' http://localhost:8080/rt/echo
           req.on('end', () => {
             try {
-              obj = Object.assign(JSON.parse(data), { req })
+              obj = JSON.parse(data)
               if (events.onEcho) {
                 events
-                  .onEcho(obj)
+                  .onEcho(Object.assign(JSON.parse(data), { req }))
                   .then(() => {
                     that.sendBy(obj)
                   })

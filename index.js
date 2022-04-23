@@ -31,10 +31,10 @@ class RTServer {
                     // curl -X POST -d '{"type":"websocket","room":"public","msg":"hello"}' http://localhost:8080/rt/echo
                     req.on('end', () => {
                         try {
-                            obj = Object.assign(JSON.parse(data), { req });
+                            obj = JSON.parse(data);
                             if (events.onEcho) {
                                 events
-                                    .onEcho(obj)
+                                    .onEcho(Object.assign(JSON.parse(data), { req }))
                                     .then(() => {
                                     that.sendBy(obj);
                                 })
