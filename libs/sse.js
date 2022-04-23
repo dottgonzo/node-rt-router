@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function clientFromReq(req) {
-    return { isAlive: req.isAlive, type: 'sse', id: req.id, room: req.room, path: req.path };
+    return { isAlive: req.isAlive, type: 'sse', id: req.id, room: req.room, path: req.path, meta: req.meta };
 }
 async function sseHandler(req, res, onConnecting) {
     req.isAlive = true;
@@ -15,7 +15,8 @@ async function sseHandler(req, res, onConnecting) {
     });
     if (onConnecting) {
         try {
-            await onConnecting(req, client);
+            const meta = await onConnecting(req, client);
+            req.meta = meta;
             res.writeHead(200, {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -29,6 +30,7 @@ async function sseHandler(req, res, onConnecting) {
         }
     }
     else {
+        req.meta = {};
         res.writeHead(200, {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',

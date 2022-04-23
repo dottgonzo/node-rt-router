@@ -82,7 +82,9 @@ function default_1(server, events, options) {
                     try {
                         events
                             .onUpgrade(wss, ws)
-                            .then(() => {
+                            .then((meta) => {
+                            ;
+                            ws.meta = meta;
                             wss.emit('connection', ws, request);
                         })
                             .catch((err) => {
@@ -95,6 +97,8 @@ function default_1(server, events, options) {
                     }
                 }
                 else {
+                    ;
+                    ws.meta = {};
                     wss.emit('connection', ws, request);
                 }
             });

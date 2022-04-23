@@ -9,7 +9,7 @@ export interface TSseClientConnected extends TSseClient {
   send: (data: string) => void
 }
 function clientFromReq(req: ReqWithData) {
-  return { isAlive: req.isAlive, type: 'sse' as 'sse', id: req.id, room: req.room, path: req.path }
+  return { isAlive: req.isAlive, type: 'sse' as 'sse', id: req.id, room: req.room, path: req.path, meta: req.meta }
 }
 async function sseHandler(
   req: ReqWithData,
@@ -29,7 +29,8 @@ async function sseHandler(
 
   if (onConnecting) {
     try {
-      await onConnecting(req, client)
+      const meta = await onConnecting(req, client)
+      req.meta = meta
       res.writeHead(200, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -41,6 +42,7 @@ async function sseHandler(
       throw err
     }
   } else {
+    req.meta = {}
     res.writeHead(200, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -53,7 +55,7 @@ async function sseHandler(
 }
 
 export type TSseEvents = {
-  onConnecting?: (req: IncomingMessage, client: TSseClient) => Promise<void>
+  onConnecting?: (req: IncomingMessage, client: TSseClient) => Promise<any>
   onConnected?: (req: IncomingMessage, client: TSseClientConnected) => Promise<void>
   onExit?: (req: IncomingMessage, client: TSseClientConnected) => Promise<void>
 }

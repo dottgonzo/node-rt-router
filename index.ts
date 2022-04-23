@@ -9,6 +9,7 @@ export type TClient = {
   room: string
   isAlive: boolean
   type: 'websocket' | 'sse'
+  meta: any
 }
 export interface TClientConnected extends TClient {
   send: (msg: string) => void

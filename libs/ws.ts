@@ -7,7 +7,7 @@ export interface wsWithData extends WebSocket, TClient {
 }
 
 export type WsEvents = {
-  onUpgrade?: (server: WebSocketServer, client: wsWithData) => Promise<void>
+  onUpgrade?: (server: WebSocketServer, client: wsWithData) => Promise<any>
   onEnter?: (server: WebSocketServer, client: wsWithData) => Promise<void>
   onExit?: (server: WebSocketServer, client: wsWithData) => Promise<void>
   onMessage?: (server: WebSocketServer, client: wsWithData, data: string) => Promise<void>
@@ -97,7 +97,8 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
           try {
             events
               .onUpgrade(wss, ws as unknown as wsWithData)
-              .then(() => {
+              .then((meta) => {
+                ;(ws as unknown as wsWithData).meta = meta
                 wss.emit('connection', ws, request)
               })
               .catch((err) => {
@@ -108,6 +109,8 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
             return socket.destroy()
           }
         } else {
+          ;(ws as unknown as wsWithData).meta = {}
+
           wss.emit('connection', ws, request)
         }
       })
