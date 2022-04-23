@@ -12,6 +12,13 @@ class RTServer {
         this.sseServers = [];
         if (!options.rootPath)
             options.rootPath = '/';
+        server.on('request', (req, res) => {
+            if (req.url === path_1.default.join(options.rootPath || '/', 'ping')) {
+                res.setHeader('Content-Type', 'application/json');
+                res.writeHead(200);
+                return res.end(`{pong:true}`);
+            }
+        });
         for (const rt of options.rt) {
             switch (rt.type) {
                 case 'websocket':

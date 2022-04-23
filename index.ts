@@ -33,6 +33,14 @@ export default class RTServer {
     events: { onConnected?: TOnConnected; onConnecting?: TOnConnecting; onMessage?: TOnMessage }
   ) {
     if (!options.rootPath) options.rootPath = '/'
+    server.on('request', (req, res) => {
+      if (req.url === path.join(options.rootPath || '/', 'ping')) {
+        res.setHeader('Content-Type', 'application/json')
+
+        res.writeHead(200)
+        return res.end(`{pong:true}`)
+      }
+    })
     for (const rt of options.rt) {
       switch (rt.type) {
         case 'websocket':
