@@ -16,11 +16,14 @@ const sseSrv: { path: string; type: 'sse' | 'websocket' } = { path: '/sse', type
 const rt = [wsSrv, sseSrv]
 const servers = new genServers(
   server,
-  { rt, rootPath: '/rt' },
+  { rt, rootPath: '/rt', echoServer: true },
   {
     onConnected: async (wsClient) => {
       wsClient.send('ciao')
       console.log(`entered ${wsClient.id}`)
+    },
+    onEcho: async (wsClient) => {
+      console.log(`onEcho ${wsClient.id}`)
     },
   }
 )

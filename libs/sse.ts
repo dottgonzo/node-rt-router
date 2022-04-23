@@ -94,7 +94,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
   }
 
   server.on('request', (req, res) => {
-    if (req.url === (options?.serverPath || '/')) {
+    if (req.method === 'GET' && req?.url?.split('?')[0] === (options?.serverPath || '/')) {
       const r = req as ReqWithData
       r.path = options?.serverPath || '/'
       sseHandler(r, res, events?.onConnecting)

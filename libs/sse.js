@@ -71,7 +71,7 @@ function default_1(server, events, options) {
         }
     }
     server.on('request', (req, res) => {
-        if (req.url === (options?.serverPath || '/')) {
+        if (req.method === 'GET' && req?.url?.split('?')[0] === (options?.serverPath || '/')) {
             const r = req;
             r.path = options?.serverPath || '/';
             sseHandler(r, res, events?.onConnecting)

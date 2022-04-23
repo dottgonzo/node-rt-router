@@ -8,7 +8,7 @@
     <h1>Test Client</h1>
     <script>
       // This is the client application.
-      const url = 'http://localhost:8080/sse'
+      const url = 'http://localhost:8080/rt/sse?room=public'
       const event = new EventSource(url)
       event.onopen = () => console.log('Opened')
       event.onmessage = function (ev) {

@@ -13,10 +13,51 @@ class RTServer {
         if (!options.rootPath)
             options.rootPath = '/';
         server.on('request', (req, res) => {
-            if (req.url === path_1.default.join(options.rootPath || '/', 'ping')) {
+            if (req.method === 'GET' && req.url === path_1.default.join(options.rootPath || '/', 'ping')) {
                 res.setHeader('Content-Type', 'application/json');
                 res.writeHead(200);
                 return res.end(`{pong:true}`);
+            }
+            else if (req.method === 'POST' &&
+                options?.echoServer &&
+                req.url === path_1.default.join(options.rootPath || '/', 'echo')) {
+                try {
+                    let data = '';
+                    let obj;
+                    const that = this;
+                    req.on('data', (chunk) => {
+                        data += chunk;
+                    });
+                    // curl -X POST -d '{"type":"websocket","room":"public","msg":"hello"}' http://localhost:8080/rt/echo
+                    req.on('end', () => {
+                        try {
+                            obj = JSON.parse(data);
+                            if (events.onEcho) {
+                                events
+                                    .onEcho(obj)
+                                    .then(() => {
+                                    that.sendBy(obj);
+                                })
+                                    .catch((err) => {
+                                    console.error('onEcho error:', err);
+                                });
+                            }
+                            else {
+                                that.sendBy(obj);
+                            }
+                        }
+                        catch (err) {
+                            res.writeHead(500);
+                        }
+                        finally {
+                            res.end();
+                        }
+                    });
+                }
+                catch (err) {
+                    console.error('echo err:', err);
+                }
+                //
             }
         });
         for (const rt of options.rt) {
@@ -57,6 +98,52 @@ class RTServer {
         }
         catch (err) {
             this.sendToWsById(id, msg);
+        }
+    }
+    sendBy(obj) {
+        if (obj.id && obj.type) {
+            if (obj.type === 'websocket') {
+                this.sendToWsById(obj.id, obj.msg);
+            }
+            else if (obj.type === 'sse') {
+                this.sendToSseById(obj.id, obj.msg);
+            }
+        }
+        else if (obj.room && obj.path && obj.type) {
+            if (obj.type === 'websocket') {
+                this.sendToWsGroup(obj.room, obj.path, obj.msg);
+            }
+            else if (obj.type === 'sse') {
+                this.sendToSseGroup(obj.room, obj.path, obj.msg);
+            }
+        }
+        else if (obj.path && obj.type) {
+            if (obj.type === 'websocket') {
+                this.sendToWsPath(obj.path, obj.msg);
+            }
+            else if (obj.type === 'sse') {
+                this.sendToSsePath(obj.path, obj.path);
+            }
+        }
+        else if (obj.room && obj.type) {
+            if (obj.type === 'websocket') {
+                this.sendToWsRoom(obj.room, obj.msg);
+            }
+            else if (obj.type === 'sse') {
+                this.sendToSseRoom(obj.room, obj.room);
+            }
+        }
+        else if (obj.room && obj.path) {
+            this.sendToGroup(obj.room, obj.path, obj.msg);
+        }
+        else if (obj.room) {
+            this.sendToRoom(obj.room, obj.msg);
+        }
+        else if (obj.path) {
+            this.sendToPath(obj.path, obj.msg);
+        }
+        else if (obj.id) {
+            this.send(obj.id, obj.msg);
         }
     }
     sendToWsById(id, msg) {
