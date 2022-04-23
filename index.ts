@@ -79,53 +79,118 @@ export default class RTServer {
     }
   }
   send(id: string, msg: string) {
-    let found = false
+    try {
+      this.sendToSseById(id, msg)
+    } catch (err) {
+      this.sendToWsById(id, msg)
+    }
+  }
+  sendToWsById(id: string, msg: string) {
+    if (!id) throw new Error('id is required')
     for (const ws of this.wsServers) {
       ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
         if (client.id === id) {
           client.send(msg)
-          found = true
-          return
+          return true
         }
       })
     }
-    if (found) return
+    throw new Error(`client ${id} not found`)
+  }
+  sendToSseById(id: string, msg: string) {
+    if (!id) throw new Error('id is required')
     for (const ws of this.sseServers) {
-      ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
+      ws.clients.forEach((client) => {
         if (client.id === id) {
           client.send(msg)
-          found = true
-          return
+          return true
+        }
+      })
+    }
+    throw new Error(`client ${id} not found`)
+  }
+  sendToWsRoom(room: string, msg: string) {
+    for (const se of this.wsServers) {
+      se.clients.forEach((client: any) => {
+        if (client.room === room) {
+          client.send(msg)
+        }
+      })
+    }
+  }
+  sendToSseRoom(room: string, msg: string) {
+    for (const se of this.sseServers) {
+      se.clients.forEach((client) => {
+        if (client.room === room) {
+          client.send(msg)
         }
       })
     }
   }
   sendToRoom(room: string, msg: string) {
+    this.sendToSseRoom(room, msg)
+    this.sendToWsRoom(room, msg)
+  }
+  sendToWsPath(wspath: string, msg: string) {
     for (const ws of this.wsServers) {
       ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
-        if (client.room === room) {
-          client.send(msg)
-        }
-      })
-    }
-    for (const se of this.sseServers) {
-      se.clients.forEach((client: any) => {
-        if (client.room === room) {
+        if (client.path === wspath) {
           client.send(msg)
         }
       })
     }
   }
-  broadcast(msg: string) {
+  sendToSsePath(wspath: string, msg: string) {
+    for (const se of this.sseServers) {
+      se.clients.forEach((client) => {
+        if (client.path === wspath) {
+          client.send(msg)
+        }
+      })
+    }
+  }
+  sendToPath(wspath: string, msg: string) {
+    this.sendToSsePath(wspath, msg)
+    this.sendToWsPath(wspath, msg)
+  }
+  sendToWsGroup(room: string, wspath: string, msg: string) {
+    for (const ws of this.wsServers) {
+      ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
+        if (client.path === wspath && client.room === room) {
+          client.send(msg)
+        }
+      })
+    }
+  }
+  sendToSseGroup(room: string, wspath: string, msg: string) {
+    for (const se of this.sseServers) {
+      se.clients.forEach((client) => {
+        if (client.path === wspath && client.room === room) {
+          client.send(msg)
+        }
+      })
+    }
+  }
+  sendToGroup(room: string, wspath: string, msg: string) {
+    this.sendToSseGroup(room, wspath, msg)
+    this.sendToWsGroup(room, wspath, msg)
+  }
+  broadcastWs(msg: string) {
     for (const ws of this.wsServers) {
       ws.clients.forEach((client) => {
         client.send(msg)
       })
     }
+  }
+  broadcastSSe(msg: string) {
     for (const se of this.sseServers) {
-      se.clients.forEach((client: any) => {
+      se.clients.forEach((client) => {
         client.send(msg)
       })
     }
+  }
+  broadcast(msg: string) {
+    this.broadcastWs(msg)
+    this.broadcastSSe(msg)
   }
 }
