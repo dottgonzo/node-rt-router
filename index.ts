@@ -44,7 +44,7 @@ export default class RTServer {
   sseServers: TSseServers[] = []
   constructor(
     server: Server,
-    options: { rt: { path: string; type: 'websocket' | 'sse' }[]; rootPath?: string },
+    options: { rt: { path: string; type: 'websocket' | 'sse' }[]; rootPath?: string; echoServerPath?: string },
     events: TEvents
   ) {
     if (!options.rootPath) options.rootPath = '/'
@@ -54,7 +54,12 @@ export default class RTServer {
 
         res.writeHead(200)
         return res.end(`{pong:true}`)
-      } else if (req.method === 'POST' && events.onEcho && req.url === path.join(options.rootPath || '/', 'echo')) {
+      } else if (
+        options.echoServerPath &&
+        req.method === 'POST' &&
+        events.onEcho &&
+        req.url === path.join(options.rootPath || '/', options?.echoServerPath || 'echo')
+      ) {
         try {
           let data = ''
           let obj: TRequestSend

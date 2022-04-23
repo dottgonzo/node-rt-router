@@ -18,7 +18,10 @@ class RTServer {
                 res.writeHead(200);
                 return res.end(`{pong:true}`);
             }
-            else if (req.method === 'POST' && events.onEcho && req.url === path_1.default.join(options.rootPath || '/', 'echo')) {
+            else if (options.echoServerPath &&
+                req.method === 'POST' &&
+                events.onEcho &&
+                req.url === path_1.default.join(options.rootPath || '/', options?.echoServerPath || 'echo')) {
                 try {
                     let data = '';
                     let obj;
