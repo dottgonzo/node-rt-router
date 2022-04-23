@@ -9,7 +9,15 @@ export interface TSseClientConnected extends TSseClient {
   send: (data: string) => void
 }
 function clientFromReq(req: ReqWithData) {
-  return { isAlive: req.isAlive, type: 'sse' as 'sse', id: req.id, room: req.room, path: req.path, meta: req.meta }
+  return {
+    isAlive: req.isAlive,
+    type: 'sse' as 'sse',
+    id: req.id,
+    room: req.room,
+    path: req.path,
+    meta: req.meta,
+    key: req.key,
+  }
 }
 async function sseHandler(
   req: ReqWithData,
@@ -20,6 +28,7 @@ async function sseHandler(
   req.type = 'sse'
   req.id = 'sse_' + Math.floor(Math.random() * 1000000).toString() + '-' + Date.now()
   req.room = req?.url?.split('room=')[1]?.split('&')[0] || '/'
+  req.key = req?.url?.split('key=')[1]?.split('&')[0] || '/'
 
   const client: TSseClientConnected = Object.assign(clientFromReq(req), {
     send: (data: string) => {

@@ -1,13 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function clientFromReq(req) {
-    return { isAlive: req.isAlive, type: 'sse', id: req.id, room: req.room, path: req.path, meta: req.meta };
+    return {
+        isAlive: req.isAlive,
+        type: 'sse',
+        id: req.id,
+        room: req.room,
+        path: req.path,
+        meta: req.meta,
+        key: req.key,
+    };
 }
 async function sseHandler(req, res, onConnecting) {
     req.isAlive = true;
     req.type = 'sse';
     req.id = 'sse_' + Math.floor(Math.random() * 1000000).toString() + '-' + Date.now();
     req.room = req?.url?.split('room=')[1]?.split('&')[0] || '/';
+    req.key = req?.url?.split('key=')[1]?.split('&')[0] || '/';
     const client = Object.assign(clientFromReq(req), {
         send: (data) => {
             res.write(`data: ${data}\n\n`);

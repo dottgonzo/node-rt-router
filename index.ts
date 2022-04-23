@@ -10,6 +10,7 @@ export type TClient = {
   isAlive: boolean
   type: 'websocket' | 'sse'
   meta: any
+  key?: string
 }
 export interface TClientConnected extends TClient {
   send: (msg: string) => void

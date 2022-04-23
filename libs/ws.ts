@@ -93,6 +93,8 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
         ;(ws as unknown as wsWithData).type = 'websocket'
         ;(ws as unknown as wsWithData).path = options?.serverPath || '/'
         ;(ws as unknown as wsWithData).room = (request.url || 'public').split('room=')[1]?.split('&')[0] || 'public'
+        ;(ws as unknown as wsWithData).key = (request.url || 'public').split('key=')[1]?.split('&')[0] || 'public'
+
         if (events.onUpgrade) {
           try {
             events

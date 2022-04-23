@@ -78,6 +78,7 @@ function default_1(server, events, options) {
                 ws.type = 'websocket';
                 ws.path = options?.serverPath || '/';
                 ws.room = (request.url || 'public').split('room=')[1]?.split('&')[0] || 'public';
+                ws.key = (request.url || 'public').split('key=')[1]?.split('&')[0] || 'public';
                 if (events.onUpgrade) {
                     try {
                         events
