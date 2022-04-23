@@ -173,6 +173,34 @@ class RTServer {
         }
         throw new Error(`client ${id} not found`);
     }
+    sendToWsByMetaId(id, msg) {
+        if (!id)
+            throw new Error('id is required');
+        for (const ws of this.wsServers) {
+            ;
+            ws.clients.forEach((client) => {
+                if (client?.meta?._id === id) {
+                    client.send(msg);
+                }
+            });
+        }
+    }
+    sendToSseByMetaId(id, msg) {
+        if (!id)
+            throw new Error('id is required');
+        for (const ws of this.sseServers) {
+            ws.clients.forEach((client) => {
+                if (client?.meta?._id === id) {
+                    client.send(msg);
+                    return true;
+                }
+            });
+        }
+    }
+    sendByMetaId(id, msg) {
+        this.sendToWsByMetaId(id, msg);
+        this.sendToSseByMetaId(id, msg);
+    }
     sendToWsRoom(room, msg) {
         for (const se of this.wsServers) {
             se.clients.forEach((client) => {

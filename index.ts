@@ -199,6 +199,31 @@ export default class RTServer {
     }
     throw new Error(`client ${id} not found`)
   }
+  sendToWsByMetaId(id: string, msg: string) {
+    if (!id) throw new Error('id is required')
+    for (const ws of this.wsServers) {
+      ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
+        if (client?.meta?._id === id) {
+          client.send(msg)
+        }
+      })
+    }
+  }
+  sendToSseByMetaId(id: string, msg: string) {
+    if (!id) throw new Error('id is required')
+    for (const ws of this.sseServers) {
+      ws.clients.forEach((client) => {
+        if (client?.meta?._id === id) {
+          client.send(msg)
+          return true
+        }
+      })
+    }
+  }
+  sendByMetaId(id: string, msg: string) {
+    this.sendToWsByMetaId(id, msg)
+    this.sendToSseByMetaId(id, msg)
+  }
   sendToWsRoom(room: string, msg: string) {
     for (const se of this.wsServers) {
       se.clients.forEach((client: any) => {
