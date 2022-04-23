@@ -17,7 +17,7 @@ export interface TClientConnected extends TClient {
 }
 
 export type TOnConnected = (client: TClientConnected) => Promise<void>
-export type TOnConnecting = (client: TClient) => Promise<void>
+export type TOnConnecting = (client: TClient) => Promise<any>
 export type TOnMessage = (client: TClientConnected, data: string) => Promise<void>
 
 export type TEvents = {
