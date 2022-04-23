@@ -58,7 +58,7 @@ export default class RTServer {
         options.echoServerPath &&
         req.method === 'POST' &&
         events.onEcho &&
-        req.url === path.join(options.rootPath || '/', options?.echoServerPath || 'echo')
+        req.url === path.join(options.rootPath || '/', options?.echoServerPath || '/echo')
       ) {
         try {
           let data = ''

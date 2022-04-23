@@ -21,7 +21,7 @@ class RTServer {
             else if (options.echoServerPath &&
                 req.method === 'POST' &&
                 events.onEcho &&
-                req.url === path_1.default.join(options.rootPath || '/', options?.echoServerPath || 'echo')) {
+                req.url === path_1.default.join(options.rootPath || '/', options?.echoServerPath || '/echo')) {
                 try {
                     let data = '';
                     let obj;
