@@ -161,7 +161,7 @@ class RTServer {
             });
         }
     }
-    broadcastSSe(msg) {
+    broadcastSse(msg) {
         for (const se of this.sseServers) {
             se.clients.forEach((client) => {
                 client.send(msg);
@@ -170,7 +170,7 @@ class RTServer {
     }
     broadcast(msg) {
         this.broadcastWs(msg);
-        this.broadcastSSe(msg);
+        this.broadcastSse(msg);
     }
 }
 exports.default = RTServer;

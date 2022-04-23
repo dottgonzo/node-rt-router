@@ -182,7 +182,7 @@ export default class RTServer {
       })
     }
   }
-  broadcastSSe(msg: string) {
+  broadcastSse(msg: string) {
     for (const se of this.sseServers) {
       se.clients.forEach((client) => {
         client.send(msg)
@@ -191,6 +191,6 @@ export default class RTServer {
   }
   broadcast(msg: string) {
     this.broadcastWs(msg)
-    this.broadcastSSe(msg)
+    this.broadcastSse(msg)
   }
 }
