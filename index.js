@@ -18,9 +18,7 @@ class RTServer {
                 res.writeHead(200);
                 return res.end(`{pong:true}`);
             }
-            else if (req.method === 'POST' &&
-                options?.echoServer &&
-                req.url === path_1.default.join(options.rootPath || '/', 'echo')) {
+            else if (req.method === 'POST' && events.onEcho && req.url === path_1.default.join(options.rootPath || '/', 'echo')) {
                 try {
                     let data = '';
                     let obj;
@@ -32,14 +30,9 @@ class RTServer {
                     req.on('end', () => {
                         try {
                             obj = JSON.parse(data);
-                            if (events.onEcho) {
-                                events.onEcho(Object.assign(JSON.parse(data), { req })).catch((err) => {
-                                    console.error('onEcho error:', err);
-                                });
-                            }
-                            else {
-                                that.sendBy(obj);
-                            }
+                            events.onEcho?.(Object.assign(JSON.parse(data), { req })).catch((err) => {
+                                console.error('onEcho error:', err);
+                            });
                         }
                         catch (err) {
                             res.writeHead(500);

@@ -25,6 +25,7 @@ export type TEvents = {
   onConnected?: TOnConnected
   onConnecting?: TOnConnecting
   onMessage?: TOnMessage
+  onEcho?: TOnEchoMessage
 }
 
 export type TRequestSend = {
@@ -43,13 +44,8 @@ export default class RTServer {
   sseServers: TSseServers[] = []
   constructor(
     server: Server,
-    options: { rt: { path: string; type: 'websocket' | 'sse' }[]; rootPath?: string; echoServer?: boolean },
-    events: {
-      onConnected?: TOnConnected
-      onConnecting?: TOnConnecting
-      onMessage?: TOnMessage
-      onEcho?: TOnEchoMessage
-    }
+    options: { rt: { path: string; type: 'websocket' | 'sse' }[]; rootPath?: string },
+    events: TEvents
   ) {
     if (!options.rootPath) options.rootPath = '/'
     server.on('request', (req, res) => {
@@ -58,11 +54,7 @@ export default class RTServer {
 
         res.writeHead(200)
         return res.end(`{pong:true}`)
-      } else if (
-        req.method === 'POST' &&
-        options?.echoServer &&
-        req.url === path.join(options.rootPath || '/', 'echo')
-      ) {
+      } else if (req.method === 'POST' && events.onEcho && req.url === path.join(options.rootPath || '/', 'echo')) {
         try {
           let data = ''
           let obj: TRequestSend
@@ -74,13 +66,9 @@ export default class RTServer {
           req.on('end', () => {
             try {
               obj = JSON.parse(data)
-              if (events.onEcho) {
-                events.onEcho(Object.assign(JSON.parse(data), { req })).catch((err) => {
-                  console.error('onEcho error:', err)
-                })
-              } else {
-                that.sendBy(obj)
-              }
+              events.onEcho?.(Object.assign(JSON.parse(data), { req })).catch((err) => {
+                console.error('onEcho error:', err)
+              })
             } catch (err) {
               res.writeHead(500)
             } finally {

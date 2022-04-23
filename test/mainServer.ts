@@ -16,7 +16,7 @@ const sseSrv: { path: string; type: 'sse' | 'websocket' } = { path: '/sse', type
 const rt = [wsSrv, sseSrv]
 const servers = new genServers(
   server,
-  { rt, rootPath: '/rt', echoServer: true },
+  { rt, rootPath: '/rt' },
   {
     onConnected: async (wsClient) => {
       wsClient.send('ciao')

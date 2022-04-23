@@ -17,7 +17,7 @@ const server = (0, http_1.createServer)(pingRequest);
 const wsSrv = { path: '/ws', type: 'websocket' };
 const sseSrv = { path: '/sse', type: 'sse' };
 const rt = [wsSrv, sseSrv];
-const servers = new __1.default(server, { rt, rootPath: '/rt', echoServer: true }, {
+const servers = new __1.default(server, { rt, rootPath: '/rt' }, {
     onConnected: async (wsClient) => {
         wsClient.send('ciao');
         console.log(`entered ${wsClient.id}`);
