@@ -75,14 +75,9 @@ export default class RTServer {
             try {
               obj = JSON.parse(data)
               if (events.onEcho) {
-                events
-                  .onEcho(Object.assign(JSON.parse(data), { req }))
-                  .then((r: TRequestSend) => {
-                    that.sendBy(r)
-                  })
-                  .catch((err) => {
-                    console.error('onEcho error:', err)
-                  })
+                events.onEcho(Object.assign(JSON.parse(data), { req })).catch((err) => {
+                  console.error('onEcho error:', err)
+                })
               } else {
                 that.sendBy(obj)
               }

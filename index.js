@@ -33,12 +33,7 @@ class RTServer {
                         try {
                             obj = JSON.parse(data);
                             if (events.onEcho) {
-                                events
-                                    .onEcho(Object.assign(JSON.parse(data), { req }))
-                                    .then((r) => {
-                                    that.sendBy(r);
-                                })
-                                    .catch((err) => {
+                                events.onEcho(Object.assign(JSON.parse(data), { req })).catch((err) => {
                                     console.error('onEcho error:', err);
                                 });
                             }
