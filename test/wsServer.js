@@ -15,23 +15,23 @@ const pingRequest = (req, res) => {
 };
 const server = (0, http_1.createServer)(pingRequest);
 (0, ws_1.default)(server, {
-    onEnter: (wsServer, wsClient) => {
+    onEnter: async (wsServer, wsClient) => {
         wsClient.send('ciao');
         console.log(`entered ${wsClient.id}`);
         console.log(wsServer.clients);
     },
-    onExit: (wsServer, wsClient) => {
+    onExit: async (wsServer, wsClient) => {
         console.log(`exited ${wsClient.id}`);
         console.log(wsServer.clients);
     },
 });
 (0, ws_1.default)(server, {
-    onEnter: (wsServer, wsClient) => {
+    onEnter: async (wsServer, wsClient) => {
         wsClient.send('ciao');
         console.log(`entered ${wsClient.id}`);
         console.log(wsServer.clients);
     },
-    onExit: (wsServer, wsClient) => {
+    onExit: async (wsServer, wsClient) => {
         console.log(`exited ${wsClient.id}`);
         console.log(wsServer.clients);
     },

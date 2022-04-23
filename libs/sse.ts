@@ -11,41 +11,57 @@ export interface TSseClientConnected extends TSseClient {
 function clientFromReq(req: ReqWithData) {
   return { isAlive: req.isAlive, type: 'sse' as 'sse', id: req.id, room: req.room, path: req.path }
 }
-function sseHandler(req: ReqWithData, res: ServerResponse, onConnecting: TSseEvents['onConnecting']) {
+async function sseHandler(
+  req: ReqWithData,
+  res: ServerResponse,
+  onConnecting: TSseEvents['onConnecting']
+): Promise<TSseClientConnected> {
   req.isAlive = true
   req.type = 'sse'
   req.id = 'sse_' + Math.floor(Math.random() * 1000000).toString() + '-' + Date.now()
   req.room = req?.url?.split('room=')[1]?.split('&')[0] || '/'
 
-  const client = Object.assign(clientFromReq(req), {
+  const client: TSseClientConnected = Object.assign(clientFromReq(req), {
     send: (data: string) => {
       res.write(`data: ${data}\n\n`)
     },
   })
 
   if (onConnecting) {
-    onConnecting(req, client)
+    try {
+      await onConnecting(req, client)
+      res.writeHead(200, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+        'Access-Control-Max-Age': 2592000, // 30 days
+        'Content-Type': 'text/event-stream',
+      })
+    } catch (err) {
+      console.error(err)
+      throw err
+    }
+  } else {
+    res.writeHead(200, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+      'Access-Control-Max-Age': 2592000, // 30 days
+      'Content-Type': 'text/event-stream',
+    })
   }
-  res.writeHead(200, {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
-    'Access-Control-Max-Age': 2592000, // 30 days
-    'Content-Type': 'text/event-stream',
-  })
 
   return client
 }
 
 export type TSseEvents = {
-  onConnecting?: (req: IncomingMessage, client: TSseClient) => void
-  onConnected?: (req: IncomingMessage, client: TSseClientConnected) => void
-  onExit?: (req: IncomingMessage, client: TSseClientConnected) => void
+  onConnecting?: (req: IncomingMessage, client: TSseClient) => Promise<void>
+  onConnected?: (req: IncomingMessage, client: TSseClientConnected) => Promise<void>
+  onExit?: (req: IncomingMessage, client: TSseClientConnected) => Promise<void>
 }
 export type TSseServers = { clients: TSseClientConnected[] }
 export default function (server: Server, events: TSseEvents, options?: { serverPath?: string }) {
   const sseServerClients: TSseServers = { clients: [] }
 
-  function closeClient(req: ReqWithData, onExit?: TSseEvents['onExit']) {
+  function closeClient(req: ReqWithData, client: TSseClientConnected, onExit?: TSseEvents['onExit']) {
     if (
       sseServerClients.clients.find((f) => {
         f.id === req.id
@@ -53,7 +69,9 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
     ) {
       if (onExit) {
         try {
-          onExit(req, req as unknown as TSseClientConnected)
+          onExit(req, client).catch((err) => {
+            console.error('sse on exit error', err)
+          })
         } catch (err) {
           console.error('sse on exit error', err)
         }
@@ -68,33 +86,39 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
     if (req.url === (options?.serverPath || '/')) {
       const r = req as ReqWithData
       r.path = options?.serverPath || '/'
-      const client = sseHandler(r, res, events?.onConnecting)
+      sseHandler(r, res, events?.onConnecting)
+        .catch((err) => {
+          console.error('sse unauth error', err)
+        })
+        .then((client) => {
+          sseServerClients.clients.push(client as TSseClientConnected)
 
-      sseServerClients.clients.push(client)
+          req.on('close', () => {
+            closeClient(r, client as TSseClientConnected, events?.onExit)
+          })
 
-      req.on('close', () => {
-        closeClient(r, events?.onExit)
-      })
+          req.on('end', () => {
+            closeClient(r, client as TSseClientConnected, events?.onExit)
+          })
 
-      req.on('end', () => {
-        closeClient(r, events?.onExit)
-      })
-
-      function ping(id: string) {
-        setTimeout(() => {
-          if (!sseServerClients.clients.find((f) => f.id === id)) return
-          try {
-            res.write(';p \n')
-            ping(id)
-          } catch (err) {
-            console.error('ping error', err)
+          function ping(id: string) {
+            setTimeout(() => {
+              if (!sseServerClients.clients.find((f) => f.id === id)) return
+              try {
+                res.write(';p \n')
+                ping(id)
+              } catch (err) {
+                console.error('ping error', err)
+              }
+            }, 20 * 1000)
           }
-        }, 20 * 1000)
-      }
-      ping(client.id)
-      if (events?.onConnected) {
-        events?.onConnected(req, client)
-      }
+          ping((client as TSseClientConnected).id)
+          if (events?.onConnected) {
+            events?.onConnected(req, client as TSseClientConnected).catch((err) => {
+              console.error('sse onConnected error', err)
+            })
+          }
+        })
     }
   })
   return sseServerClients

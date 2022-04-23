@@ -7,10 +7,10 @@ export interface wsWithData extends WebSocket, TClient {
 }
 
 export type WsEvents = {
-  onUpgrade?: (server: WebSocketServer, client: wsWithData) => void
-  onEnter?: (server: WebSocketServer, client: wsWithData) => void
-  onExit?: (server: WebSocketServer, client: wsWithData) => void
-  onMessage?: (server: WebSocketServer, client: wsWithData, data: string) => void
+  onUpgrade?: (server: WebSocketServer, client: wsWithData) => Promise<void>
+  onEnter?: (server: WebSocketServer, client: wsWithData) => Promise<void>
+  onExit?: (server: WebSocketServer, client: wsWithData) => Promise<void>
+  onMessage?: (server: WebSocketServer, client: wsWithData, data: string) => Promise<void>
 }
 
 function setAlive(ws: wsWithData) {
@@ -20,11 +20,13 @@ function unsetClient(
   wsServer: WebSocketServer,
   wsClient: wsWithData,
   interval: NodeJS.Timer,
-  onExit?: (server: WebSocketServer, client: wsWithData) => void
+  onExit?: (server: WebSocketServer, client: wsWithData) => Promise<void>
 ) {
   if (onExit) {
     try {
-      onExit(wsServer, wsClient)
+      onExit(wsServer, wsClient).catch((err) => {
+        console.error('ws on exit error', err)
+      })
     } catch (err) {
       console.error('onExitError', err)
     }
@@ -67,7 +69,9 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
     })
     if (events.onEnter) {
       try {
-        events.onEnter(wss, ws as unknown as wsWithData)
+        events.onEnter(wss, ws as unknown as wsWithData).catch((err) => {
+          console.error('ws onEnter error', err)
+        })
       } catch (err) {
         unsetClient(wss, ws, interval, events.onExit)
       }
@@ -91,10 +95,17 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
         ;(ws as unknown as wsWithData).room = (request.url || 'public').split('room=')[1]?.split('&')[0] || 'public'
         if (events.onUpgrade) {
           try {
-            events.onUpgrade(wss, ws as unknown as wsWithData)
-            wss.emit('connection', ws, request)
+            events
+              .onUpgrade(wss, ws as unknown as wsWithData)
+              .then(() => {
+                wss.emit('connection', ws, request)
+              })
+              .catch((err) => {
+                console.error('ws onEnter error', err)
+                return socket.destroy()
+              })
           } catch (err) {
-            socket.destroy()
+            return socket.destroy()
           }
         } else {
           wss.emit('connection', ws, request)

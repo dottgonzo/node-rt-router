@@ -7,7 +7,9 @@ function setAlive(ws) {
 function unsetClient(wsServer, wsClient, interval, onExit) {
     if (onExit) {
         try {
-            onExit(wsServer, wsClient);
+            onExit(wsServer, wsClient).catch((err) => {
+                console.error('ws on exit error', err);
+            });
         }
         catch (err) {
             console.error('onExitError', err);
@@ -50,7 +52,9 @@ function default_1(server, events, options) {
         });
         if (events.onEnter) {
             try {
-                events.onEnter(wss, ws);
+                events.onEnter(wss, ws).catch((err) => {
+                    console.error('ws onEnter error', err);
+                });
             }
             catch (err) {
                 unsetClient(wss, ws, interval, events.onExit);
@@ -76,11 +80,18 @@ function default_1(server, events, options) {
                 ws.room = (request.url || 'public').split('room=')[1]?.split('&')[0] || 'public';
                 if (events.onUpgrade) {
                     try {
-                        events.onUpgrade(wss, ws);
-                        wss.emit('connection', ws, request);
+                        events
+                            .onUpgrade(wss, ws)
+                            .then(() => {
+                            wss.emit('connection', ws, request);
+                        })
+                            .catch((err) => {
+                            console.error('ws onEnter error', err);
+                            return socket.destroy();
+                        });
                     }
                     catch (err) {
-                        socket.destroy();
+                        return socket.destroy();
                     }
                 }
                 else {

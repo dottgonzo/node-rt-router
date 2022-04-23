@@ -13,12 +13,12 @@ const pingRequest: RequestListener = (req, res) => {
 const server = createServer(pingRequest)
 
 wsServer(server, {
-  onEnter: (wsServer, wsClient) => {
+  onEnter: async (wsServer, wsClient) => {
     wsClient.send('ciao')
     console.log(`entered ${wsClient.id}`)
     console.log(wsServer.clients)
   },
-  onExit: (wsServer, wsClient) => {
+  onExit: async (wsServer, wsClient) => {
     console.log(`exited ${wsClient.id}`)
     console.log(wsServer.clients)
   },
@@ -26,12 +26,12 @@ wsServer(server, {
 wsServer(
   server,
   {
-    onEnter: (wsServer, wsClient) => {
+    onEnter: async (wsServer, wsClient) => {
       wsClient.send('ciao')
       console.log(`entered ${wsClient.id}`)
       console.log(wsServer.clients)
     },
-    onExit: (wsServer, wsClient) => {
+    onExit: async (wsServer, wsClient) => {
       console.log(`exited ${wsClient.id}`)
       console.log(wsServer.clients)
     },
