@@ -28,7 +28,6 @@ class RTServer {
                     req.on('data', (chunk) => {
                         data += chunk;
                     });
-                    // curl -X POST -d '{"type":"websocket","room":"public","msg":"hello"}' http://localhost:8080/rt/echo
                     req.on('end', () => {
                         try {
                             obj = JSON.parse(data);
