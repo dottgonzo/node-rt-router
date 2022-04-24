@@ -60,7 +60,7 @@ async function sseHandler(req, res, onConnecting) {
 }
 function default_1(server, events, options) {
     const sseServerClients = { clients: [] };
-    function closeClient(req, client, onExit) {
+    function closeClient(req, res, client, onExit) {
         if (sseServerClients.clients.find((f) => {
             f.id === req.id;
         })) {
@@ -82,6 +82,7 @@ function default_1(server, events, options) {
         else {
             console.warn('try to close a client that is not connected', client);
         }
+        res.end();
     }
     server.on('request', (req, res) => {
         try {
@@ -95,15 +96,15 @@ function default_1(server, events, options) {
                     sseServerClients.clients.push(client);
                     console.info(`sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`, client?.meta, client?.id);
                     req.on('close', () => {
-                        closeClient(r, client, events?.onExit);
+                        closeClient(r, res, client, events?.onExit);
                     });
                     req.on('end', () => {
-                        closeClient(r, client, events?.onExit);
+                        closeClient(r, res, client, events?.onExit);
                     });
                     function ping(id) {
                         setTimeout(() => {
                             if (!sseServerClients.clients.find((f) => f.id === id))
-                                return closeClient(r, client, events?.onExit);
+                                return closeClient(r, res, client, events?.onExit);
                             try {
                                 res.write(';p \n');
                                 ping(id);

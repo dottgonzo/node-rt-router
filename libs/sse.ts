@@ -83,7 +83,12 @@ export type TSseServers = { clients: TSseClientConnected[] }
 export default function (server: Server, events: TSseEvents, options?: { serverPath?: string }) {
   const sseServerClients: TSseServers = { clients: [] }
 
-  function closeClient(req: ReqWithData, client: TSseClientConnected, onExit?: TSseEvents['onExit']) {
+  function closeClient(
+    req: ReqWithData,
+    res: ServerResponse,
+    client: TSseClientConnected,
+    onExit?: TSseEvents['onExit']
+  ) {
     if (
       sseServerClients.clients.find((f) => {
         f.id === req.id
@@ -108,6 +113,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
     } else {
       console.warn('try to close a client that is not connected', client)
     }
+    res.end()
   }
 
   server.on('request', (req, res) => {
@@ -126,17 +132,17 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
             )
 
             req.on('close', () => {
-              closeClient(r, client as TSseClientConnected, events?.onExit)
+              closeClient(r, res, client as TSseClientConnected, events?.onExit)
             })
 
             req.on('end', () => {
-              closeClient(r, client as TSseClientConnected, events?.onExit)
+              closeClient(r, res, client as TSseClientConnected, events?.onExit)
             })
 
             function ping(id: string) {
               setTimeout(() => {
                 if (!sseServerClients.clients.find((f) => f.id === id))
-                  return closeClient(r, client as TSseClientConnected, events?.onExit)
+                  return closeClient(r, res, client as TSseClientConnected, events?.onExit)
                 try {
                   res.write(';p \n')
                   ping(id)
