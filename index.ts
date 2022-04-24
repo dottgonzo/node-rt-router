@@ -53,6 +53,7 @@ export default class RTServer {
         res.setHeader('Content-Type', 'application/json')
 
         res.writeHead(200)
+        console.info('send pong response')
         return res.end(`{pong:true}`)
       } else if (req.method === 'GET' && req.url === path.join(options.rootPath || '/', '/healthz')) {
         res.writeHead(200)
