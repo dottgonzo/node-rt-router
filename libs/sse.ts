@@ -98,6 +98,8 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
         `sse client disconnected ${client?.id} ws clients now are ${sseServerClients?.clients?.length}`,
         client?.meta
       )
+    } else {
+      console.warn('try to close a client that is not connected', client)
     }
   }
 
