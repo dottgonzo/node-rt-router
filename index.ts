@@ -79,11 +79,12 @@ export default class RTServer {
             } catch (err) {
               res.writeHead(500)
             } finally {
-              res.end()
+              return res.end()
             }
           })
         } catch (err) {
           console.error('echo err:', err)
+          return res.end()
         }
         //
       }
