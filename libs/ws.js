@@ -16,8 +16,8 @@ function unsetClient(wsServer, wsClient, interval, onExit) {
         }
     }
     clearInterval(interval);
-    wsClient.terminate();
     console.info(`ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.listeners?.length || 0}`, wsClient?.meta);
+    return wsClient.terminate();
 }
 function default_1(server, events, options) {
     if (!options)
@@ -39,8 +39,8 @@ function default_1(server, events, options) {
                 events.onMessage(wss, ws, data.toString());
             console.log('received: %s', data);
         });
-        const interval = setInterval(function ping() {
-            for (const c of wss.clients) {
+        const interval = setInterval(() => {
+            for (const c of wss.clients.values()) {
                 if (!c.isAlive) {
                     return unsetClient(wss, c, interval, events.onExit);
                 }

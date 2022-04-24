@@ -33,11 +33,11 @@ function unsetClient(
   }
 
   clearInterval(interval)
-  wsClient.terminate()
   console.info(
     `ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.listeners?.length || 0}`,
     wsClient?.meta
   )
+  return wsClient.terminate()
 }
 export default function (server: Server, events: WsEvents, options?: { serverPath?: string; single?: boolean }) {
   if (!options) options = {}
@@ -60,8 +60,8 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
       console.log('received: %s', data)
     })
 
-    const interval: NodeJS.Timer = setInterval(function ping() {
-      for (const c of wss.clients as unknown as WsWithData[]) {
+    const interval: NodeJS.Timer = setInterval(() => {
+      for (const c of wss.clients.values() as unknown as WsWithData[]) {
         if (!c.isAlive) {
           return unsetClient(wss, c, interval, events.onExit)
         }
