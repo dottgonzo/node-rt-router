@@ -94,6 +94,10 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
       sseServerClients.clients = sseServerClients.clients.filter((f) => {
         f.id !== req.id
       })
+      console.info(
+        `sse client disconnected ${client?.id} ws clients now are ${sseServerClients.clients.length}`,
+        client?.meta
+      )
     }
   }
 
@@ -107,6 +111,10 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
         })
         .then((client) => {
           sseServerClients.clients.push(client as TSseClientConnected)
+          console.info(
+            `sse client connected ${client?.id} ws clients now are ${sseServerClients.clients.length}`,
+            client?.meta
+          )
 
           req.on('close', () => {
             closeClient(r, client as TSseClientConnected, events?.onExit)

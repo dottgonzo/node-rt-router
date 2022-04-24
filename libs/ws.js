@@ -15,6 +15,7 @@ function unsetClient(wsServer, wsClient, interval, onExit) {
             console.error('onExitError', err);
         }
     }
+    console.info(`ws client disconnected ${wsClient.id} ws clients now are ${wsServer.clients.values.length}`, wsClient?.meta);
     clearInterval(interval);
     wsClient.terminate();
 }
@@ -25,6 +26,7 @@ function default_1(server, events, options) {
         options.serverPath = '/';
     const wss = new ws_1.WebSocketServer({ noServer: true });
     wss.on('connection', function connection(ws) {
+        console.info(`ws client connected ${ws.id} ws clients now are ${wss.clients.values.length}`, ws.meta);
         setAlive(ws);
         ws.on('pong', () => {
             setAlive(ws);

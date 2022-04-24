@@ -31,6 +31,10 @@ function unsetClient(
       console.error('onExitError', err)
     }
   }
+  console.info(
+    `ws client disconnected ${wsClient.id} ws clients now are ${wsServer.clients.values.length}`,
+    wsClient?.meta
+  )
   clearInterval(interval)
   wsClient.terminate()
 }
@@ -40,6 +44,8 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
   const wss = new WebSocketServer({ noServer: true })
 
   wss.on('connection', function connection(ws: WsWithData) {
+    console.info(`ws client connected ${ws.id} ws clients now are ${wss.clients.values.length}`, ws.meta)
+
     setAlive(ws)
 
     ws.on('pong', () => {
