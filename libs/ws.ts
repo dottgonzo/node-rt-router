@@ -104,7 +104,7 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
                 wss.emit('connection', ws, request)
               })
               .catch((err) => {
-                console.error('ws onEnter error', err)
+                console.error('ws onUpgrade error', err)
                 return socket.destroy()
               })
           } catch (err) {

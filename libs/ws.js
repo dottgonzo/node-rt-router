@@ -89,7 +89,7 @@ function default_1(server, events, options) {
                             wss.emit('connection', ws, request);
                         })
                             .catch((err) => {
-                            console.error('ws onEnter error', err);
+                            console.error('ws onUpgrade error', err);
                             return socket.destroy();
                         });
                     }
