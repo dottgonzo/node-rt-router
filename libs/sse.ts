@@ -113,7 +113,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
             if (!client?.id) throw new Error('sse client id is empty')
             sseServerClients.clients.push(client as TSseClientConnected)
             console.info(
-              `sse client connected ${client?.id} ws clients now are ${sseServerClients.clients.length}`,
+              `sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`,
               client?.meta
             )
 
