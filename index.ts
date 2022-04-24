@@ -54,6 +54,9 @@ export default class RTServer {
 
         res.writeHead(200)
         return res.end(`{pong:true}`)
+      } else if (req.method === 'GET' && req.url === path.join(options.rootPath || '/', '/healthz')) {
+        res.writeHead(200)
+        return res.end()
       } else if (
         options.echoServerPath &&
         req.method === 'POST' &&
