@@ -31,14 +31,15 @@ function unsetClient(
       console.error('onExitError', err)
     }
   }
+
+  clearInterval(interval)
+  wsClient.terminate()
   console.info(
     `ws client disconnected ${wsClient.id} ws clients now are ${
-      wsServer?.clients?.values?.length ? wsServer.clients.values.length + 1 : 0
+      wsServer?.clients?.values?.length ? wsServer.clients.values.length : 0
     }`,
     wsClient?.meta
   )
-  clearInterval(interval)
-  wsClient.terminate()
 }
 export default function (server: Server, events: WsEvents, options?: { serverPath?: string; single?: boolean }) {
   if (!options) options = {}
@@ -47,9 +48,7 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
 
   wss.on('connection', function connection(ws: WsWithData) {
     console.info(
-      `ws client connected ${ws.id} ws clients now are ${
-        wss?.clients?.values?.length ? wss.clients.values.length + 1 : 0
-      }`,
+      `ws client connected ${ws.id} ws clients now are ${wss?.clients?.values?.length ? wss.clients.values.length : 0}`,
       ws.meta
     )
 

@@ -71,7 +71,7 @@ function default_1(server, events, options) {
             sseServerClients.clients = sseServerClients.clients.filter((f) => {
                 f.id !== req.id;
             });
-            console.info(`sse client disconnected ${client?.id} ws clients now are ${sseServerClients.clients.length}`, client?.meta);
+            console.info(`sse client disconnected ${client?.id} ws clients now are ${sseServerClients?.clients?.length}`, client?.meta);
         }
     }
     server.on('request', (req, res) => {

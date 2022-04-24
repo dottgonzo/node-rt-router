@@ -95,7 +95,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
         f.id !== req.id
       })
       console.info(
-        `sse client disconnected ${client?.id} ws clients now are ${sseServerClients.clients.length}`,
+        `sse client disconnected ${client?.id} ws clients now are ${sseServerClients?.clients?.length}`,
         client?.meta
       )
     }
