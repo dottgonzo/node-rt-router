@@ -139,9 +139,14 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
             }
             ping((client as TSseClientConnected).id)
             if (events?.onConnected) {
-              events?.onConnected(req, client as TSseClientConnected).catch((err) => {
-                console.error('sse onConnected error', err)
-              })
+              events
+                ?.onConnected(req, client as TSseClientConnected)
+                .then(() => {
+                  console.info('sse on connected done')
+                })
+                .catch((err) => {
+                  console.error('sse onConnected error', err)
+                })
             }
           })
           .catch((err) => {

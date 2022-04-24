@@ -109,7 +109,12 @@ function default_1(server, events, options) {
                     }
                     ping(client.id);
                     if (events?.onConnected) {
-                        events?.onConnected(req, client).catch((err) => {
+                        events
+                            ?.onConnected(req, client)
+                            .then(() => {
+                            console.info('sse on connected done');
+                        })
+                            .catch((err) => {
                             console.error('sse onConnected error', err);
                         });
                     }
