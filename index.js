@@ -31,7 +31,7 @@ class RTServer {
                     req.on('end', () => {
                         try {
                             obj = JSON.parse(data);
-                            events.onEcho?.(Object.assign(JSON.parse(data), { req })).catch((err) => {
+                            events.onEcho?.(Object.assign(obj, { req })).catch((err) => {
                                 console.error('onEcho error:', err);
                             });
                         }
@@ -89,13 +89,13 @@ class RTServer {
             this.sendToWsById(id, msg);
         }
     }
-    sendBy(obj) {
+    sendBy(obj, channel) {
         if (obj.id && obj.type) {
             if (obj.type === 'websocket') {
                 this.sendToWsById(obj.id, obj.msg);
             }
             else if (obj.type === 'sse') {
-                this.sendToSseById(obj.id, obj.msg);
+                this.sendToSseById(obj.id, obj.msg, channel);
             }
         }
         else if (obj.room && obj.path && obj.type) {
@@ -103,7 +103,7 @@ class RTServer {
                 this.sendToWsGroup(obj.room, obj.path, obj.msg);
             }
             else if (obj.type === 'sse') {
-                this.sendToSseGroup(obj.room, obj.path, obj.msg);
+                this.sendToSseGroup(obj.room, obj.path, obj.msg, channel);
             }
         }
         else if (obj.path && obj.type) {
@@ -111,7 +111,7 @@ class RTServer {
                 this.sendToWsPath(obj.path, obj.msg);
             }
             else if (obj.type === 'sse') {
-                this.sendToSsePath(obj.path, obj.path);
+                this.sendToSsePath(obj.path, obj.path, channel);
             }
         }
         else if (obj.room && obj.type) {
@@ -119,7 +119,7 @@ class RTServer {
                 this.sendToWsRoom(obj.room, obj.msg);
             }
             else if (obj.type === 'sse') {
-                this.sendToSseRoom(obj.room, obj.room);
+                this.sendToSseRoom(obj.room, obj.room, channel);
             }
         }
         else if (obj.room && obj.path) {
@@ -149,13 +149,13 @@ class RTServer {
         }
         throw new Error(`client ${id} not found`);
     }
-    sendToSseById(id, msg) {
+    sendToSseById(id, msg, channel) {
         if (!id)
             throw new Error('id is required');
         for (const ws of this.sseServers) {
             ws.clients.forEach((client) => {
                 if (client.id === id) {
-                    client.send(msg);
+                    client.send(msg, channel);
                     return true;
                 }
             });
@@ -174,13 +174,13 @@ class RTServer {
             });
         }
     }
-    sendToSseByMetaId(id, msg) {
+    sendToSseByMetaId(id, msg, channel) {
         if (!id)
             throw new Error('id is required');
         for (const ws of this.sseServers) {
             ws.clients.forEach((client) => {
                 if (client?.meta?._id === id) {
-                    client.send(msg);
+                    client.send(msg, channel);
                     return true;
                 }
             });
@@ -199,11 +199,11 @@ class RTServer {
             });
         }
     }
-    sendToSseRoom(room, msg) {
+    sendToSseRoom(room, msg, channel) {
         for (const se of this.sseServers) {
             se.clients.forEach((client) => {
                 if (client.room === room) {
-                    client.send(msg);
+                    client.send(msg, channel);
                 }
             });
         }
@@ -222,11 +222,11 @@ class RTServer {
             });
         }
     }
-    sendToSsePath(wspath, msg) {
+    sendToSsePath(wspath, msg, channel) {
         for (const se of this.sseServers) {
             se.clients.forEach((client) => {
                 if (client.path === wspath) {
-                    client.send(msg);
+                    client.send(msg, channel);
                 }
             });
         }
@@ -245,11 +245,11 @@ class RTServer {
             });
         }
     }
-    sendToSseGroup(room, wspath, msg) {
+    sendToSseGroup(room, wspath, msg, channel) {
         for (const se of this.sseServers) {
             se.clients.forEach((client) => {
                 if (client.path === wspath && client.room === room) {
-                    client.send(msg);
+                    client.send(msg, channel);
                 }
             });
         }

@@ -6,7 +6,7 @@ export interface TSseClient extends TClient {
 
 export interface ReqWithData extends IncomingMessage, TSseClient {}
 export interface TSseClientConnected extends TSseClient {
-  send: (data: string) => void
+  send: (data: string, channel?: string) => void
 }
 function clientFromReq(req: ReqWithData) {
   return {
@@ -31,8 +31,8 @@ async function sseHandler(
   req.key = req?.url?.split('key=')[1]?.split('&')[0] || '/'
 
   const client: TSseClientConnected = Object.assign(clientFromReq(req), {
-    send: (data: string) => {
-      res.write(`data: ${data}\n\n`)
+    send: (data: string, channel?: string) => {
+      res.write(`${channel || 'data'}: ${data}\n\n`)
     },
   })
 

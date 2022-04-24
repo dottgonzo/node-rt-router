@@ -18,8 +18,8 @@ async function sseHandler(req, res, onConnecting) {
     req.room = req?.url?.split('room=')[1]?.split('&')[0] || '/';
     req.key = req?.url?.split('key=')[1]?.split('&')[0] || '/';
     const client = Object.assign(clientFromReq(req), {
-        send: (data) => {
-            res.write(`data: ${data}\n\n`);
+        send: (data, channel) => {
+            res.write(`${channel || 'data'}: ${data}\n\n`);
         },
     });
     if (onConnecting) {

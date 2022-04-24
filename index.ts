@@ -69,7 +69,7 @@ export default class RTServer {
           req.on('end', () => {
             try {
               obj = JSON.parse(data)
-              events.onEcho?.(Object.assign(JSON.parse(data), { req })).catch((err) => {
+              events.onEcho?.(Object.assign(obj, { req })).catch((err) => {
                 console.error('onEcho error:', err)
               })
             } catch (err) {
@@ -126,30 +126,30 @@ export default class RTServer {
       this.sendToWsById(id, msg)
     }
   }
-  sendBy(obj: TRequestSend) {
+  sendBy(obj: TRequestSend, channel?: string) {
     if (obj.id && obj.type) {
       if (obj.type === 'websocket') {
         this.sendToWsById(obj.id, obj.msg)
       } else if (obj.type === 'sse') {
-        this.sendToSseById(obj.id, obj.msg)
+        this.sendToSseById(obj.id, obj.msg, channel)
       }
     } else if (obj.room && obj.path && obj.type) {
       if (obj.type === 'websocket') {
         this.sendToWsGroup(obj.room, obj.path, obj.msg)
       } else if (obj.type === 'sse') {
-        this.sendToSseGroup(obj.room, obj.path, obj.msg)
+        this.sendToSseGroup(obj.room, obj.path, obj.msg, channel)
       }
     } else if (obj.path && obj.type) {
       if (obj.type === 'websocket') {
         this.sendToWsPath(obj.path, obj.msg)
       } else if (obj.type === 'sse') {
-        this.sendToSsePath(obj.path, obj.path)
+        this.sendToSsePath(obj.path, obj.path, channel)
       }
     } else if (obj.room && obj.type) {
       if (obj.type === 'websocket') {
         this.sendToWsRoom(obj.room, obj.msg)
       } else if (obj.type === 'sse') {
-        this.sendToSseRoom(obj.room, obj.room)
+        this.sendToSseRoom(obj.room, obj.room, channel)
       }
     } else if (obj.room && obj.path) {
       this.sendToGroup(obj.room, obj.path, obj.msg)
@@ -173,12 +173,12 @@ export default class RTServer {
     }
     throw new Error(`client ${id} not found`)
   }
-  sendToSseById(id: string, msg: string) {
+  sendToSseById(id: string, msg: string, channel?: string) {
     if (!id) throw new Error('id is required')
     for (const ws of this.sseServers) {
       ws.clients.forEach((client) => {
         if (client.id === id) {
-          client.send(msg)
+          client.send(msg, channel)
           return true
         }
       })
@@ -195,12 +195,12 @@ export default class RTServer {
       })
     }
   }
-  sendToSseByMetaId(id: string, msg: string) {
+  sendToSseByMetaId(id: string, msg: string, channel?: string) {
     if (!id) throw new Error('id is required')
     for (const ws of this.sseServers) {
       ws.clients.forEach((client) => {
         if (client?.meta?._id === id) {
-          client.send(msg)
+          client.send(msg, channel)
           return true
         }
       })
@@ -219,11 +219,11 @@ export default class RTServer {
       })
     }
   }
-  sendToSseRoom(room: string, msg: string) {
+  sendToSseRoom(room: string, msg: string, channel?: string) {
     for (const se of this.sseServers) {
       se.clients.forEach((client) => {
         if (client.room === room) {
-          client.send(msg)
+          client.send(msg, channel)
         }
       })
     }
@@ -241,11 +241,11 @@ export default class RTServer {
       })
     }
   }
-  sendToSsePath(wspath: string, msg: string) {
+  sendToSsePath(wspath: string, msg: string, channel?: string) {
     for (const se of this.sseServers) {
       se.clients.forEach((client) => {
         if (client.path === wspath) {
-          client.send(msg)
+          client.send(msg, channel)
         }
       })
     }
@@ -263,11 +263,11 @@ export default class RTServer {
       })
     }
   }
-  sendToSseGroup(room: string, wspath: string, msg: string) {
+  sendToSseGroup(room: string, wspath: string, msg: string, channel?: string) {
     for (const se of this.sseServers) {
       se.clients.forEach((client) => {
         if (client.path === wspath && client.room === room) {
-          client.send(msg)
+          client.send(msg, channel)
         }
       })
     }
