@@ -21,6 +21,9 @@ async function sseHandler(req, res, onConnecting) {
         send: (data, channel) => {
             res.write(`${channel || 'data'}: ${data}\n\n`);
         },
+        close: () => {
+            res.end();
+        },
     });
     if (onConnecting) {
         try {

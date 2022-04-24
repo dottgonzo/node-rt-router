@@ -1,8 +1,8 @@
 import type { IncomingMessage, Server } from 'http'
 import path from 'path'
-import { Server as wsDefaultServer } from 'ws'
-import sseServer, { TSseEvents, TSseServers } from './libs/sse'
-import wsServer, { WsEvents, wsWithData } from './libs/ws'
+import type { Server as wsDefaultServer } from 'ws'
+import sseServer, { type TSseEvents, type TSseServers } from './libs/sse'
+import wsServer, { type WsEvents, type WsWithData } from './libs/ws'
 export type TClient = {
   id: string
   path: string
@@ -164,7 +164,7 @@ export default class RTServer {
   sendToWsById(id: string, msg: string) {
     if (!id) throw new Error('id is required')
     for (const ws of this.wsServers) {
-      ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
+      ;(ws.clients as unknown as WsWithData[]).forEach((client) => {
         if (client.id === id) {
           client.send(msg)
           return true
@@ -188,7 +188,7 @@ export default class RTServer {
   sendToWsByMetaId(id: string, msg: string) {
     if (!id) throw new Error('id is required')
     for (const ws of this.wsServers) {
-      ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
+      ;(ws.clients as unknown as WsWithData[]).forEach((client) => {
         if (client?.meta?._id === id) {
           client.send(msg)
         }
@@ -234,7 +234,7 @@ export default class RTServer {
   }
   sendToWsPath(wspath: string, msg: string) {
     for (const ws of this.wsServers) {
-      ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
+      ;(ws.clients as unknown as WsWithData[]).forEach((client) => {
         if (client.path === wspath) {
           client.send(msg)
         }
@@ -256,7 +256,7 @@ export default class RTServer {
   }
   sendToWsGroup(room: string, wspath: string, msg: string) {
     for (const ws of this.wsServers) {
-      ;(ws.clients as unknown as wsWithData[]).forEach((client) => {
+      ;(ws.clients as unknown as WsWithData[]).forEach((client) => {
         if (client.path === wspath && client.room === room) {
           client.send(msg)
         }
