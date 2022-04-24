@@ -35,9 +35,7 @@ function unsetClient(
   clearInterval(interval)
   wsClient.terminate()
   console.info(
-    `ws client disconnected ${wsClient.id} ws clients now are ${
-      wsServer?.clients?.values?.length ? wsServer.clients.values.length : 0
-    }`,
+    `ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.listeners?.length || 0}`,
     wsClient?.meta
   )
 }
@@ -47,11 +45,6 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
   const wss = new WebSocketServer({ noServer: true })
 
   wss.on('connection', function connection(ws: WsWithData) {
-    console.info(
-      `ws client connected ${ws.id} ws clients now are ${wss?.clients?.values?.length ? wss.clients.values.length : 0}`,
-      ws.meta
-    )
-
     setAlive(ws)
 
     ws.on('pong', () => {
@@ -88,6 +81,7 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
         unsetClient(wss, ws, interval, events.onExit)
       }
     }
+    console.info(`ws client connected ${ws.id} ws clients now are ${wss?.listeners?.length || 0}`, ws.meta)
   })
   server.on('upgrade', function upgrade(request, socket, head) {
     let mainUri: string
