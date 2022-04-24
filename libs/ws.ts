@@ -33,7 +33,7 @@ function unsetClient(
   }
 
   console.info(
-    `ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.listeners?.length || 0}`,
+    `ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.clients?.size || 0}`,
     wsClient?.meta
   )
   return wsClient.terminate()
@@ -90,7 +90,7 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
         unsetClient(wss, ws, events.onExit)
       }
     }
-    console.info(`ws client connected ${ws.id} ws clients now are ${wss?.listeners?.length || 0}`, ws.meta)
+    console.info(`ws client connected ${ws.id} ws clients now are ${wss?.clients?.size || 0}`, ws.meta)
   })
   server.on('upgrade', function upgrade(request, socket, head) {
     try {

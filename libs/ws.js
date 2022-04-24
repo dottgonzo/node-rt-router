@@ -16,7 +16,7 @@ function unsetClient(wsServer, wsClient, onExit) {
             console.error('onExitError', err);
         }
     }
-    console.info(`ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.listeners?.length || 0}`, wsClient?.meta);
+    console.info(`ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.clients?.size || 0}`, wsClient?.meta);
     return wsClient.terminate();
 }
 function default_1(server, events, options) {
@@ -70,7 +70,7 @@ function default_1(server, events, options) {
                 unsetClient(wss, ws, events.onExit);
             }
         }
-        console.info(`ws client connected ${ws.id} ws clients now are ${wss?.listeners?.length || 0}`, ws.meta);
+        console.info(`ws client connected ${ws.id} ws clients now are ${wss?.clients?.size || 0}`, ws.meta);
     });
     server.on('upgrade', function upgrade(request, socket, head) {
         try {
