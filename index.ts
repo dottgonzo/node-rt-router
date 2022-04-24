@@ -294,4 +294,35 @@ export default class RTServer {
     this.broadcastWs(msg)
     this.broadcastSse(msg)
   }
+  closeWsById(id: string) {
+    if (!id) throw new Error('id is required')
+    for (const ws of this.wsServers) {
+      ;(ws.clients as unknown as WsWithData[]).forEach((client) => {
+        if (client.id === id) {
+          client.close()
+          return true
+        }
+      })
+    }
+    throw new Error(`client ${id} not found`)
+  }
+  closeSseById(id: string) {
+    if (!id) throw new Error('id is required')
+    for (const se of this.sseServers) {
+      se.clients.forEach((client) => {
+        if (client.id === id) {
+          client.close()
+          return true
+        }
+      })
+    }
+    throw new Error(`client ${id} not found`)
+  }
+  closeById(id: string) {
+    try {
+      this.closeWsById(id)
+    } catch (err) {
+      this.closeSseById(id)
+    }
+  }
 }
