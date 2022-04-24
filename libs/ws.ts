@@ -84,48 +84,52 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
     console.info(`ws client connected ${ws.id} ws clients now are ${wss?.listeners?.length || 0}`, ws.meta)
   })
   server.on('upgrade', function upgrade(request, socket, head) {
-    let mainUri: string
-    if (request?.url) {
-      mainUri = request.url.split('?')[0]
-    } else {
-      mainUri = '/'
-    }
+    try {
+      let mainUri: string
+      if (request?.url) {
+        mainUri = request.url.split('?')[0]
+      } else {
+        mainUri = '/'
+      }
 
-    if (mainUri === options?.serverPath) {
-      wss.handleUpgrade(request, socket, head, (ws, request: IncomingMessage) => {
-        ;(ws as unknown as WsWithData).id =
-          'websocket_' + Math.floor(Math.random() * 1000000).toString() + '-' + Date.now()
-        ;(ws as unknown as WsWithData).isAlive = true
-        ;(ws as unknown as WsWithData).type = 'websocket'
-        ;(ws as unknown as WsWithData).path = options?.serverPath || '/'
-        ;(ws as unknown as WsWithData).room = (request.url || 'public').split('room=')[1]?.split('&')[0] || 'public'
-        ;(ws as unknown as WsWithData).key = (request.url || 'public').split('key=')[1]?.split('&')[0] || 'public'
+      if (mainUri === options?.serverPath) {
+        wss.handleUpgrade(request, socket, head, (ws, request: IncomingMessage) => {
+          ;(ws as unknown as WsWithData).id =
+            'websocket_' + Math.floor(Math.random() * 1000000).toString() + '-' + Date.now()
+          ;(ws as unknown as WsWithData).isAlive = true
+          ;(ws as unknown as WsWithData).type = 'websocket'
+          ;(ws as unknown as WsWithData).path = options?.serverPath || '/'
+          ;(ws as unknown as WsWithData).room = (request.url || 'public').split('room=')[1]?.split('&')[0] || 'public'
+          ;(ws as unknown as WsWithData).key = (request.url || 'public').split('key=')[1]?.split('&')[0] || 'public'
 
-        if (events.onUpgrade) {
-          try {
-            events
-              .onUpgrade(wss, ws as unknown as WsWithData)
-              .then((meta) => {
-                ;(ws as unknown as WsWithData).meta = meta
-                wss.emit('connection', ws, request)
-              })
-              .catch((err) => {
-                console.error('ws onUpgrade error', err)
-                return socket.destroy()
-              })
-          } catch (err) {
-            return socket.destroy()
+          if (events.onUpgrade) {
+            try {
+              events
+                .onUpgrade(wss, ws as unknown as WsWithData)
+                .then((meta) => {
+                  ;(ws as unknown as WsWithData).meta = meta
+                  wss.emit('connection', ws, request)
+                })
+                .catch((err) => {
+                  console.error('ws onUpgrade error', err)
+                  return socket.destroy()
+                })
+            } catch (err) {
+              return socket.destroy()
+            }
+          } else {
+            ;(ws as unknown as WsWithData).meta = {}
+
+            wss.emit('connection', ws, request)
           }
-        } else {
-          ;(ws as unknown as WsWithData).meta = {}
-
-          wss.emit('connection', ws, request)
-        }
-      })
-    } else if (options?.single) {
-      socket.destroy()
-    } else {
-      return console.log('forward server after wsserver configuration for ' + options?.serverPath)
+        })
+      } else if (options?.single) {
+        socket.destroy()
+      } else {
+        return console.log('forward server after wsserver configuration for ' + options?.serverPath)
+      }
+    } catch (err) {
+      console.error('upgrading protocol error', err)
     }
   })
   return wss
