@@ -55,7 +55,7 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
     }
     for (const prev of previous) {
       if (!newOnes.find((f) => f.id === prev.id)) {
-        return unsetClient(wss, prev, events.onExit)
+        unsetClient(wss, prev, events.onExit)
       }
     }
     previous = newOnes

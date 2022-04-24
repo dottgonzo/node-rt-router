@@ -38,7 +38,7 @@ function default_1(server, events, options) {
         }
         for (const prev of previous) {
             if (!newOnes.find((f) => f.id === prev.id)) {
-                return unsetClient(wss, prev, events.onExit);
+                unsetClient(wss, prev, events.onExit);
             }
         }
         previous = newOnes;
