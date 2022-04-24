@@ -102,46 +102,51 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
   }
 
   server.on('request', (req, res) => {
-    if (req.method === 'GET' && req?.url?.split('?')[0] === (options?.serverPath || '/')) {
-      const r = req as ReqWithData
-      r.path = options?.serverPath || '/'
-      sseHandler(r, res, events?.onConnecting)
-        .catch((err) => {
-          console.error('sse unauth error', err)
-        })
-        .then((client) => {
-          sseServerClients.clients.push(client as TSseClientConnected)
-          console.info(
-            `sse client connected ${client?.id} ws clients now are ${sseServerClients.clients.length}`,
-            client?.meta
-          )
-
-          req.on('close', () => {
-            closeClient(r, client as TSseClientConnected, events?.onExit)
+    try {
+      if (req.method === 'GET' && req?.url?.split('?')[0] === (options?.serverPath || '/')) {
+        const r = req as ReqWithData
+        r.path = options?.serverPath || '/'
+        sseHandler(r, res, events?.onConnecting)
+          .catch((err) => {
+            console.error('sse unauth error', err)
           })
+          .then((client) => {
+            sseServerClients.clients.push(client as TSseClientConnected)
+            console.info(
+              `sse client connected ${client?.id} ws clients now are ${sseServerClients.clients.length}`,
+              client?.meta
+            )
 
-          req.on('end', () => {
-            closeClient(r, client as TSseClientConnected, events?.onExit)
-          })
-
-          function ping(id: string) {
-            setTimeout(() => {
-              if (!sseServerClients.clients.find((f) => f.id === id)) return
-              try {
-                res.write(';p \n')
-                ping(id)
-              } catch (err) {
-                console.error('ping error', err)
-              }
-            }, 20 * 1000)
-          }
-          ping((client as TSseClientConnected).id)
-          if (events?.onConnected) {
-            events?.onConnected(req, client as TSseClientConnected).catch((err) => {
-              console.error('sse onConnected error', err)
+            req.on('close', () => {
+              closeClient(r, client as TSseClientConnected, events?.onExit)
             })
-          }
-        })
+
+            req.on('end', () => {
+              closeClient(r, client as TSseClientConnected, events?.onExit)
+            })
+
+            function ping(id: string) {
+              setTimeout(() => {
+                if (!sseServerClients.clients.find((f) => f.id === id))
+                  return closeClient(r, client as TSseClientConnected, events?.onExit)
+                try {
+                  res.write(';p \n')
+                  ping(id)
+                } catch (err) {
+                  console.error('ping error', err)
+                }
+              }, 20 * 1000)
+            }
+            ping((client as TSseClientConnected).id)
+            if (events?.onConnected) {
+              events?.onConnected(req, client as TSseClientConnected).catch((err) => {
+                console.error('sse onConnected error', err)
+              })
+            }
+          })
+      }
+    } catch (err) {
+      console.error(err)
     }
   })
   return sseServerClients

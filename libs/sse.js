@@ -75,42 +75,47 @@ function default_1(server, events, options) {
         }
     }
     server.on('request', (req, res) => {
-        if (req.method === 'GET' && req?.url?.split('?')[0] === (options?.serverPath || '/')) {
-            const r = req;
-            r.path = options?.serverPath || '/';
-            sseHandler(r, res, events?.onConnecting)
-                .catch((err) => {
-                console.error('sse unauth error', err);
-            })
-                .then((client) => {
-                sseServerClients.clients.push(client);
-                console.info(`sse client connected ${client?.id} ws clients now are ${sseServerClients.clients.length}`, client?.meta);
-                req.on('close', () => {
-                    closeClient(r, client, events?.onExit);
-                });
-                req.on('end', () => {
-                    closeClient(r, client, events?.onExit);
-                });
-                function ping(id) {
-                    setTimeout(() => {
-                        if (!sseServerClients.clients.find((f) => f.id === id))
-                            return;
-                        try {
-                            res.write(';p \n');
-                            ping(id);
-                        }
-                        catch (err) {
-                            console.error('ping error', err);
-                        }
-                    }, 20 * 1000);
-                }
-                ping(client.id);
-                if (events?.onConnected) {
-                    events?.onConnected(req, client).catch((err) => {
-                        console.error('sse onConnected error', err);
+        try {
+            if (req.method === 'GET' && req?.url?.split('?')[0] === (options?.serverPath || '/')) {
+                const r = req;
+                r.path = options?.serverPath || '/';
+                sseHandler(r, res, events?.onConnecting)
+                    .catch((err) => {
+                    console.error('sse unauth error', err);
+                })
+                    .then((client) => {
+                    sseServerClients.clients.push(client);
+                    console.info(`sse client connected ${client?.id} ws clients now are ${sseServerClients.clients.length}`, client?.meta);
+                    req.on('close', () => {
+                        closeClient(r, client, events?.onExit);
                     });
-                }
-            });
+                    req.on('end', () => {
+                        closeClient(r, client, events?.onExit);
+                    });
+                    function ping(id) {
+                        setTimeout(() => {
+                            if (!sseServerClients.clients.find((f) => f.id === id))
+                                return closeClient(r, client, events?.onExit);
+                            try {
+                                res.write(';p \n');
+                                ping(id);
+                            }
+                            catch (err) {
+                                console.error('ping error', err);
+                            }
+                        }, 20 * 1000);
+                    }
+                    ping(client.id);
+                    if (events?.onConnected) {
+                        events?.onConnected(req, client).catch((err) => {
+                            console.error('sse onConnected error', err);
+                        });
+                    }
+                });
+            }
+        }
+        catch (err) {
+            console.error(err);
         }
     });
     return sseServerClients;
