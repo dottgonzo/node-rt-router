@@ -22,6 +22,7 @@ function unsetClient(
   interval: NodeJS.Timer,
   onExit?: (server: WebSocketServer, client: WsWithData) => Promise<void>
 ) {
+  console.log(`client ${wsClient.id} disconnected`)
   if (onExit) {
     try {
       onExit(wsServer, wsClient).catch((err) => {
@@ -70,6 +71,9 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
       }
     }, 30000)
     wss.on('close', () => {
+      unsetClient(wss, ws, interval, events.onExit)
+    })
+    wss.on('end', () => {
       unsetClient(wss, ws, interval, events.onExit)
     })
     if (events.onEnter) {

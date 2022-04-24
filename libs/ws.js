@@ -5,6 +5,7 @@ function setAlive(ws) {
     ws.isAlive = true;
 }
 function unsetClient(wsServer, wsClient, interval, onExit) {
+    console.log(`client ${wsClient.id} disconnected`);
     if (onExit) {
         try {
             onExit(wsServer, wsClient).catch((err) => {
@@ -49,6 +50,9 @@ function default_1(server, events, options) {
             }
         }, 30000);
         wss.on('close', () => {
+            unsetClient(wss, ws, interval, events.onExit);
+        });
+        wss.on('end', () => {
             unsetClient(wss, ws, interval, events.onExit);
         });
         if (events.onEnter) {
