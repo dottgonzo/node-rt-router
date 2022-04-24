@@ -19,7 +19,6 @@ function setAlive(ws: WsWithData) {
 function unsetClient(
   wsServer: WebSocketServer,
   wsClient: WsWithData,
-  interval: NodeJS.Timer,
   onExit?: (server: WebSocketServer, client: WsWithData) => Promise<void>
 ) {
   console.log(`client ${wsClient.id} disconnected`)
@@ -33,7 +32,6 @@ function unsetClient(
     }
   }
 
-  clearInterval(interval)
   console.info(
     `ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.listeners?.length || 0}`,
     wsClient?.meta
@@ -44,6 +42,24 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
   if (!options) options = {}
   if (!options.serverPath) options.serverPath = '/'
   const wss = new WebSocketServer({ noServer: true })
+  let previous: WsWithData[] = []
+  setInterval(() => {
+    const newOnes: WsWithData[] = []
+    for (const c of wss.clients.values() as unknown as WsWithData[]) {
+      newOnes.push(c)
+      if (!c.isAlive) {
+        return unsetClient(wss, c, events.onExit)
+      }
+      c.isAlive = false
+      c.ping(() => {})
+    }
+    for (const prev of previous) {
+      if (!newOnes.find((f) => f.id === prev.id)) {
+        return unsetClient(wss, prev, events.onExit)
+      }
+    }
+    previous = newOnes
+  }, 30000)
 
   wss.on('connection', function connection(ws: WsWithData) {
     setAlive(ws)
@@ -61,28 +77,17 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
       console.log('received: %s', data)
     })
 
-    const interval: NodeJS.Timer = setInterval(() => {
-      for (const c of wss.clients.values() as unknown as WsWithData[]) {
-        if (!c.isAlive) {
-          return unsetClient(wss, c, interval, events.onExit)
-        }
-        c.isAlive = false
-        c.ping(() => {})
-      }
-    }, 30000)
     wss.on('close', () => {
-      unsetClient(wss, ws, interval, events.onExit)
+      unsetClient(wss, ws, events.onExit)
     })
-    wss.on('end', () => {
-      unsetClient(wss, ws, interval, events.onExit)
-    })
+
     if (events.onEnter) {
       try {
         events.onEnter(wss, ws as unknown as WsWithData).catch((err) => {
           console.error('ws onEnter error', err)
         })
       } catch (err) {
-        unsetClient(wss, ws, interval, events.onExit)
+        unsetClient(wss, ws, events.onExit)
       }
     }
     console.info(`ws client connected ${ws.id} ws clients now are ${wss?.listeners?.length || 0}`, ws.meta)

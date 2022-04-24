@@ -4,7 +4,7 @@ const ws_1 = require("ws");
 function setAlive(ws) {
     ws.isAlive = true;
 }
-function unsetClient(wsServer, wsClient, interval, onExit) {
+function unsetClient(wsServer, wsClient, onExit) {
     console.log(`client ${wsClient.id} disconnected`);
     if (onExit) {
         try {
@@ -16,7 +16,6 @@ function unsetClient(wsServer, wsClient, interval, onExit) {
             console.error('onExitError', err);
         }
     }
-    clearInterval(interval);
     console.info(`ws client disconnected ${wsClient.id} ws clients now are ${wsServer?.listeners?.length || 0}`, wsClient?.meta);
     return wsClient.terminate();
 }
@@ -26,6 +25,24 @@ function default_1(server, events, options) {
     if (!options.serverPath)
         options.serverPath = '/';
     const wss = new ws_1.WebSocketServer({ noServer: true });
+    let previous = [];
+    setInterval(() => {
+        const newOnes = [];
+        for (const c of wss.clients.values()) {
+            newOnes.push(c);
+            if (!c.isAlive) {
+                return unsetClient(wss, c, events.onExit);
+            }
+            c.isAlive = false;
+            c.ping(() => { });
+        }
+        for (const prev of previous) {
+            if (!newOnes.find((f) => f.id === prev.id)) {
+                return unsetClient(wss, prev, events.onExit);
+            }
+        }
+        previous = newOnes;
+    }, 30000);
     wss.on('connection', function connection(ws) {
         setAlive(ws);
         ws.on('pong', () => {
@@ -40,20 +57,8 @@ function default_1(server, events, options) {
                 events.onMessage(wss, ws, data.toString());
             console.log('received: %s', data);
         });
-        const interval = setInterval(() => {
-            for (const c of wss.clients.values()) {
-                if (!c.isAlive) {
-                    return unsetClient(wss, c, interval, events.onExit);
-                }
-                c.isAlive = false;
-                c.ping(() => { });
-            }
-        }, 30000);
         wss.on('close', () => {
-            unsetClient(wss, ws, interval, events.onExit);
-        });
-        wss.on('end', () => {
-            unsetClient(wss, ws, interval, events.onExit);
+            unsetClient(wss, ws, events.onExit);
         });
         if (events.onEnter) {
             try {
@@ -62,7 +67,7 @@ function default_1(server, events, options) {
                 });
             }
             catch (err) {
-                unsetClient(wss, ws, interval, events.onExit);
+                unsetClient(wss, ws, events.onExit);
             }
         }
         console.info(`ws client connected ${ws.id} ws clients now are ${wss?.listeners?.length || 0}`, ws.meta);
