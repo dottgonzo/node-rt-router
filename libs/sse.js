@@ -29,6 +29,7 @@ async function sseHandler(req, res, onConnecting) {
         try {
             const meta = await onConnecting(req, client);
             req.meta = meta;
+            client.meta = meta;
             res.writeHead(200, {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -43,6 +44,7 @@ async function sseHandler(req, res, onConnecting) {
     }
     else {
         req.meta = {};
+        client.meta = {};
         res.writeHead(200, {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -87,7 +89,7 @@ function default_1(server, events, options) {
                     if (!client?.id)
                         throw new Error('sse client id is empty');
                     sseServerClients.clients.push(client);
-                    console.info(`sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`, client?.meta);
+                    console.info(`sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`, client?.meta, client?.id);
                     req.on('close', () => {
                         closeClient(r, client, events?.onExit);
                     });

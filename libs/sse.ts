@@ -44,6 +44,7 @@ async function sseHandler(
     try {
       const meta = await onConnecting(req, client)
       req.meta = meta
+      client.meta = meta
       res.writeHead(200, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -56,6 +57,8 @@ async function sseHandler(
     }
   } else {
     req.meta = {}
+    client.meta = {}
+
     res.writeHead(200, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -114,7 +117,8 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
             sseServerClients.clients.push(client as TSseClientConnected)
             console.info(
               `sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`,
-              client?.meta
+              client?.meta,
+              client?.id
             )
 
             req.on('close', () => {
