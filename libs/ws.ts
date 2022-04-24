@@ -32,7 +32,9 @@ function unsetClient(
     }
   }
   console.info(
-    `ws client disconnected ${wsClient.id} ws clients now are ${wsServer.clients.values.length}`,
+    `ws client disconnected ${wsClient.id} ws clients now are ${
+      wsServer?.clients?.values?.length ? wsServer.clients.values.length + 1 : 0
+    }`,
     wsClient?.meta
   )
   clearInterval(interval)
@@ -44,7 +46,12 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
   const wss = new WebSocketServer({ noServer: true })
 
   wss.on('connection', function connection(ws: WsWithData) {
-    console.info(`ws client connected ${ws.id} ws clients now are ${wss.clients.values.length}`, ws.meta)
+    console.info(
+      `ws client connected ${ws.id} ws clients now are ${
+        wss?.clients?.values?.length ? wss.clients.values.length + 1 : 0
+      }`,
+      ws.meta
+    )
 
     setAlive(ws)
 
