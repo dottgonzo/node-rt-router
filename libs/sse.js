@@ -80,10 +80,9 @@ function default_1(server, events, options) {
                 const r = req;
                 r.path = options?.serverPath || '/';
                 sseHandler(r, res, events?.onConnecting)
-                    .catch((err) => {
-                    console.error('sse unauth error', err);
-                })
                     .then((client) => {
+                    if (!client?.id)
+                        throw new Error('sse client id is empty');
                     sseServerClients.clients.push(client);
                     console.info(`sse client connected ${client?.id} ws clients now are ${sseServerClients.clients.length}`, client?.meta);
                     req.on('close', () => {
@@ -111,6 +110,9 @@ function default_1(server, events, options) {
                             console.error('sse onConnected error', err);
                         });
                     }
+                })
+                    .catch((err) => {
+                    console.error('sse unauth error', err);
                 });
             }
         }
