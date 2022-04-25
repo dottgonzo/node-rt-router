@@ -65,6 +65,7 @@ export default class RTServer {
         req.url === path.join(options.rootPath || '/', options?.echoServerPath || '/echo')
       ) {
         try {
+          console.info('echo server request')
           let data = ''
           let obj: TRequestSend
           req.on('data', (chunk) => {

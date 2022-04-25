@@ -28,6 +28,7 @@ class RTServer {
                 events.onEcho &&
                 req.url === path_1.default.join(options.rootPath || '/', options?.echoServerPath || '/echo')) {
                 try {
+                    console.info('echo server request');
                     let data = '';
                     let obj;
                     req.on('data', (chunk) => {
