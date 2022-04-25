@@ -58,6 +58,17 @@ export default class RTServer {
       } else if (req.method === 'GET' && req.url === path.join(options.rootPath || '/', '/healthz')) {
         res.writeHead(200)
         return res.end()
+      } else if (req.method === 'GET' && req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api')) {
+        const apiPageName = req.url.split('/api/')[1].split('?')[0].split('/')[0]
+        switch (apiPageName) {
+          case 'all':
+            res.setHeader('Content-Type', 'application/json')
+            res.writeHead(200)
+
+            return res.end(JSON.stringify(this.getAllClients()))
+          default:
+            break
+        }
       } else if (
         options.echoServerPath &&
         req.method === 'POST' &&
@@ -200,6 +211,7 @@ export default class RTServer {
         }
       })
     }
+    throw new Error(`client ${id} not found`)
   }
   sendToSseByMetaId(id: string, msg: string, channel?: string) {
     if (!id) throw new Error('id is required')
@@ -211,10 +223,18 @@ export default class RTServer {
         }
       })
     }
+    throw new Error(`client ${id} not found`)
   }
   sendByMetaId(id: string, msg: string) {
-    this.sendToWsByMetaId(id, msg)
-    this.sendToSseByMetaId(id, msg)
+    try {
+      this.sendToWsByMetaId(id, msg)
+    } catch (err) {
+      try {
+        this.sendToSseByMetaId(id, msg)
+      } catch (err) {
+        throw new Error(`client ${id} not found`)
+      }
+    }
   }
   sendToWsRoom(room: string, msg: string) {
     for (const se of this.wsServers) {
@@ -328,7 +348,32 @@ export default class RTServer {
     try {
       this.closeWsById(id)
     } catch (err) {
-      this.closeSseById(id)
+      try {
+        this.closeSseById(id)
+      } catch (err) {
+        throw new Error(`client ${id} not found`)
+      }
     }
+  }
+  getWsClients() {
+    let clients: TClient[] = []
+    for (const ws of this.wsServers) {
+      ;(ws.clients as unknown as TClient[]).forEach((client) => {
+        clients.push(client)
+      })
+    }
+    return clients
+  }
+  getSSeClients() {
+    let clients: TClient[] = []
+    for (const ws of this.sseServers) {
+      ;(ws.clients as unknown as TClient[]).forEach((client) => {
+        clients.push(client)
+      })
+    }
+    return clients
+  }
+  getAllClients() {
+    return this.getSSeClients().concat(this.getWsClients())
   }
 }

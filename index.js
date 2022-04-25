@@ -23,6 +23,17 @@ class RTServer {
                 res.writeHead(200);
                 return res.end();
             }
+            else if (req.method === 'GET' && req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api')) {
+                const apiPageName = req.url.split('/api/')[1].split('?')[0].split('/')[0];
+                switch (apiPageName) {
+                    case 'all':
+                        res.setHeader('Content-Type', 'application/json');
+                        res.writeHead(200);
+                        return res.end(JSON.stringify(this.getAllClients()));
+                    default:
+                        break;
+                }
+            }
             else if (options.echoServerPath &&
                 req.method === 'POST' &&
                 events.onEcho &&
@@ -180,6 +191,7 @@ class RTServer {
                 }
             });
         }
+        throw new Error(`client ${id} not found`);
     }
     sendToSseByMetaId(id, msg, channel) {
         if (!id)
@@ -192,10 +204,20 @@ class RTServer {
                 }
             });
         }
+        throw new Error(`client ${id} not found`);
     }
     sendByMetaId(id, msg) {
-        this.sendToWsByMetaId(id, msg);
-        this.sendToSseByMetaId(id, msg);
+        try {
+            this.sendToWsByMetaId(id, msg);
+        }
+        catch (err) {
+            try {
+                this.sendToSseByMetaId(id, msg);
+            }
+            catch (err) {
+                throw new Error(`client ${id} not found`);
+            }
+        }
     }
     sendToWsRoom(room, msg) {
         for (const se of this.wsServers) {
@@ -315,8 +337,36 @@ class RTServer {
             this.closeWsById(id);
         }
         catch (err) {
-            this.closeSseById(id);
+            try {
+                this.closeSseById(id);
+            }
+            catch (err) {
+                throw new Error(`client ${id} not found`);
+            }
         }
+    }
+    getWsClients() {
+        let clients = [];
+        for (const ws of this.wsServers) {
+            ;
+            ws.clients.forEach((client) => {
+                clients.push(client);
+            });
+        }
+        return clients;
+    }
+    getSSeClients() {
+        let clients = [];
+        for (const ws of this.sseServers) {
+            ;
+            ws.clients.forEach((client) => {
+                clients.push(client);
+            });
+        }
+        return clients;
+    }
+    getAllClients() {
+        return this.getSSeClients().concat(this.getWsClients());
     }
 }
 exports.default = RTServer;
