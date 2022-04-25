@@ -20,12 +20,14 @@ export type TOnConnected = (client: TClientConnected) => Promise<void>
 export type TOnConnecting = (client: TClient) => Promise<any>
 export type TOnMessage = (client: TClientConnected, data: string) => Promise<void>
 export type TOnEchoMessage = (obj: TRequestSendWithReq) => Promise<void>
+export type TOnApiCall = (req: IncomingMessage) => Promise<void>
 
 export type TEvents = {
   onConnected?: TOnConnected
   onConnecting?: TOnConnecting
   onMessage?: TOnMessage
   onEcho?: TOnEchoMessage
+  onApiCall?: TOnApiCall
 }
 
 export type TRequestSend = {
@@ -58,17 +60,32 @@ export default class RTServer {
       } else if (req.method === 'GET' && req.url === path.join(options.rootPath || '/', '/healthz')) {
         res.writeHead(200)
         return res.end()
-      } else if (req.method === 'GET' && req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api')) {
-        const apiPageName = req.url.split('/api/')[1].split('?')[0].split('/')[0]
-        switch (apiPageName) {
-          case 'all':
-            res.setHeader('Content-Type', 'application/json')
-            res.writeHead(200)
+      } else if (
+        events.onApiCall &&
+        req.method === 'GET' &&
+        req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api') &&
+        req?.url?.split('/api/')[1]?.split('?')?.[0]?.split('/')?.[0]
+      ) {
+        const apiPageName = req?.url.split('/api/')[1].split('?')[0].split('/')[0]
+        const that = this
+        events
+          .onApiCall(req)
+          .then(() => {
+            switch (apiPageName) {
+              case 'all':
+                res.setHeader('Content-Type', 'application/json')
+                res.writeHead(200)
 
-            return res.end(JSON.stringify(this.getAllClients()))
-          default:
-            break
-        }
+                return res.end(JSON.stringify(that.getAllClients()))
+              default:
+                break
+            }
+          })
+          .catch((err) => {
+            res.writeHead(500)
+            console.error('onApiCall error', err)
+            res.end(err?.message)
+          })
       } else if (
         options.echoServerPath &&
         req.method === 'POST' &&

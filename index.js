@@ -23,16 +23,29 @@ class RTServer {
                 res.writeHead(200);
                 return res.end();
             }
-            else if (req.method === 'GET' && req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api')) {
-                const apiPageName = req.url.split('/api/')[1].split('?')[0].split('/')[0];
-                switch (apiPageName) {
-                    case 'all':
-                        res.setHeader('Content-Type', 'application/json');
-                        res.writeHead(200);
-                        return res.end(JSON.stringify(this.getAllClients()));
-                    default:
-                        break;
-                }
+            else if (events.onApiCall &&
+                req.method === 'GET' &&
+                req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api') &&
+                req?.url?.split('/api/')[1]?.split('?')?.[0]?.split('/')?.[0]) {
+                const apiPageName = req?.url.split('/api/')[1].split('?')[0].split('/')[0];
+                const that = this;
+                events
+                    .onApiCall(req)
+                    .then(() => {
+                    switch (apiPageName) {
+                        case 'all':
+                            res.setHeader('Content-Type', 'application/json');
+                            res.writeHead(200);
+                            return res.end(JSON.stringify(that.getAllClients()));
+                        default:
+                            break;
+                    }
+                })
+                    .catch((err) => {
+                    res.writeHead(500);
+                    console.error('onApiCall error', err);
+                    res.end(err?.message);
+                });
             }
             else if (options.echoServerPath &&
                 req.method === 'POST' &&
