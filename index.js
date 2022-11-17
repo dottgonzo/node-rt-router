@@ -54,57 +54,54 @@ class RTServer {
                     console.error('onApiCall error', err);
                     res.end(err?.message);
                 });
-            }
-            else if (events.onApiCall &&
-                req.method === 'POST' &&
-                req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api') &&
-                req?.url?.split('/api/')[1]?.split('?')?.[0]?.split('/')?.[0]) {
-                const apiPageName = req?.url.split('/api/')[1].split('?')[0].split('/')[0];
-                const that = this;
-                events
-                    .onApiCall(req)
-                    .then(() => {
-                    switch (apiPageName) {
-                        case 'send_to_ws_client':
-                            let data = '';
-                            let obj;
-                            req.on('data', (chunk) => {
-                                data += chunk;
-                            });
-                            req.on('end', () => {
-                                try {
-                                    obj = JSON.parse(data);
-                                    if (!obj.id) {
-                                        console.error('id must be sent');
-                                        res.writeHead(500);
-                                    }
-                                    else {
-                                        if (obj.type === 'websocket') {
-                                            that.sendToWsByMetaId(obj.id, obj.msg);
-                                        }
-                                        else {
-                                            that.sendToSseByMetaId(obj.id, obj.msg);
-                                        }
-                                        res.setHeader('Content-Type', 'application/json');
-                                        res.writeHead(200);
-                                    }
-                                }
-                                catch (err) {
-                                    res.writeHead(500);
-                                }
-                                finally {
-                                    return res.end();
-                                }
-                            });
-                        default:
-                            break;
-                    }
-                })
-                    .catch((err) => {
-                    res.writeHead(500);
-                    console.error('onApiCall error', err);
-                    res.end(err?.message);
-                });
+                // } else if (
+                //   events.onApiCall &&
+                //   req.method === 'POST' &&
+                //   req.url?.includes(options.rootPath ? options.rootPath + '/api' : '/api') &&
+                //   req?.url?.split('/api/')[1]?.split('?')?.[0]?.split('/')?.[0]
+                // ) {
+                //   const apiPageName = req?.url.split('/api/')[1].split('?')[0].split('/')[0]
+                //   const that = this
+                //   events
+                //     .onApiCall(req)
+                //     .then(() => {
+                //       switch (apiPageName) {
+                //         case 'send_to_ws_client':
+                //           let data = ''
+                //           let obj: TRequestSend
+                //           req.on('data', (chunk) => {
+                //             data += chunk
+                //           })
+                //           req.on('end', () => {
+                //             try {
+                //               obj = JSON.parse(data)
+                //               if (!obj.id) {
+                //                 console.error('id must be sent')
+                //                 res.writeHead(500)
+                //               } else {
+                //                 if (obj.type === 'websocket') {
+                //                   that.sendToWsByMetaId(obj.id, obj.msg)
+                //                 } else {
+                //                   that.sendToSseByMetaId(obj.id, obj.msg)
+                //                 }
+                //                 res.setHeader('Content-Type', 'application/json')
+                //                 res.writeHead(200)
+                //               }
+                //             } catch (err) {
+                //               res.writeHead(500)
+                //             } finally {
+                //               return res.end()
+                //             }
+                //           })
+                //         default:
+                //           break
+                //       }
+                //     })
+                //     .catch((err) => {
+                //       res.writeHead(500)
+                //       console.error('onApiCall error', err)
+                //       res.end(err?.message)
+                //     })
             }
             else if (options.echoServerPath &&
                 req.method === 'POST' &&
