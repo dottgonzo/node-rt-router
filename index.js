@@ -117,16 +117,23 @@ class RTServer {
                     req.on('end', () => {
                         try {
                             obj = JSON.parse(data);
-                            events.onEcho?.(Object.assign(obj, { req })).catch((err) => {
-                                console.error('onEcho error:', err);
-                            });
                         }
                         catch (err) {
                             res.writeHead(500);
-                        }
-                        finally {
                             return res.end();
                         }
+                        events
+                            .onEcho?.(Object.assign(obj, { req }))
+                            .then(() => {
+                            res.writeHead(200);
+                        })
+                            .catch((err) => {
+                            console.error('onEcho error:', err);
+                            res.writeHead(500);
+                        })
+                            .finally(() => {
+                            return res.end();
+                        });
                     });
                 }
                 catch (err) {
