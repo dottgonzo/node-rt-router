@@ -61,9 +61,7 @@ async function sseHandler(req, res, onConnecting) {
 function default_1(server, events, options) {
     const sseServerClients = { clients: [] };
     function closeClient(req, res, client, onExit) {
-        if (sseServerClients.clients.find((f) => {
-            f.id === req.id;
-        })) {
+        if (sseServerClients.clients.find((f) => f.id === req.id)) {
             if (onExit) {
                 try {
                     onExit(req, client).catch((err) => {

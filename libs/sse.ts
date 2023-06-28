@@ -89,11 +89,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
     client: TSseClientConnected,
     onExit?: TSseEvents['onExit']
   ) {
-    if (
-      sseServerClients.clients.find((f) => {
-        f.id === req.id
-      })
-    ) {
+    if (sseServerClients.clients.find((f) => f.id === req.id)) {
       if (onExit) {
         try {
           onExit(req, client).catch((err) => {
