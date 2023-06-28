@@ -30,14 +30,6 @@ async function sseHandler(req, res, onConnecting) {
             const meta = await onConnecting(req, client);
             req.meta = meta;
             client.meta = meta;
-            res.writeHead(200, {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
-                'Access-Control-Max-Age': 2592000,
-                'Content-Type': 'text/event-stream',
-                'Cache-Control': 'no-cache',
-                Connection: 'keep-alive',
-            });
         }
         catch (err) {
             console.error(err);
@@ -47,15 +39,15 @@ async function sseHandler(req, res, onConnecting) {
     else {
         req.meta = {};
         client.meta = {};
-        res.writeHead(200, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
-            'Access-Control-Max-Age': 2592000,
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            Connection: 'keep-alive',
-        });
     }
+    res.writeHead(200, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+        'Access-Control-Max-Age': 2592000,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+    });
     return client;
 }
 function default_1(server, events, options) {
