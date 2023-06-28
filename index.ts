@@ -226,8 +226,8 @@ export default class RTServer {
   }
   sendToSseById(id: string, msg: string, channel?: string) {
     if (!id) throw new Error('id is required')
-    for (const ws of this.sseServers) {
-      ws.clients.forEach((client) => {
+    for (const sse of this.sseServers) {
+      sse.clients.forEach((client) => {
         if (client.id === id) {
           client.send(msg, channel)
           return true
@@ -249,8 +249,8 @@ export default class RTServer {
   }
   sendToSseByMetaId(id: string, msg: string, channel?: string) {
     if (!id) throw new Error('id is required')
-    for (const ws of this.sseServers) {
-      ws.clients.forEach((client) => {
+    for (const sse of this.sseServers) {
+      sse.clients.forEach((client) => {
         if (client?.meta?._id === id) {
           client.send(msg, channel)
           return true
@@ -400,8 +400,8 @@ export default class RTServer {
   }
   getSSeClients() {
     let clients: TClient[] = []
-    for (const ws of this.sseServers) {
-      ;(ws.clients as unknown as TClient[]).forEach((client) => {
+    for (const sse of this.sseServers) {
+      ;(sse.clients as unknown as TClient[]).forEach((client) => {
         clients.push(client)
       })
     }
