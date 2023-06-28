@@ -135,13 +135,13 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
 
             function ping(id: string) {
               setTimeout(() => {
-                if (!sseServerClients.clients.find((f) => f.id === id))
-                  return closeClient(r, res, client as TSseClientConnected, events?.onExit)
-                try {
-                  res.write(';p \n')
-                  ping(id)
-                } catch (err) {
-                  console.error('ping error', err)
+                if (sseServerClients.clients.find((f) => f.id === id)) {
+                  try {
+                    res.write(';p \n')
+                    ping(id)
+                  } catch (err) {
+                    console.error('ping error', err)
+                  }
                 }
               }, 20 * 1000)
             }

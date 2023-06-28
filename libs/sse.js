@@ -99,14 +99,14 @@ function default_1(server, events, options) {
                     });
                     function ping(id) {
                         setTimeout(() => {
-                            if (!sseServerClients.clients.find((f) => f.id === id))
-                                return closeClient(r, res, client, events?.onExit);
-                            try {
-                                res.write(';p \n');
-                                ping(id);
-                            }
-                            catch (err) {
-                                console.error('ping error', err);
+                            if (sseServerClients.clients.find((f) => f.id === id)) {
+                                try {
+                                    res.write(';p \n');
+                                    ping(id);
+                                }
+                                catch (err) {
+                                    console.error('ping error', err);
+                                }
                             }
                         }, 20 * 1000);
                     }
