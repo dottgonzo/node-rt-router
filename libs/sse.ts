@@ -99,9 +99,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
           console.error('sse on exit error', err)
         }
       }
-      sseServerClients.clients = sseServerClients.clients.filter((f) => {
-        f.id !== req.id
-      })
+      sseServerClients.clients = sseServerClients.clients.filter((f) => f.id !== req.id)
       console.info(
         `sse client disconnected ${client?.id} ws clients now are ${sseServerClients?.clients?.length}`,
         client?.meta
