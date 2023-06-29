@@ -41,8 +41,6 @@ async function sseHandler(req, res, onConnecting) {
         client.meta = {};
     }
     res.writeHead(200, {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
         'Access-Control-Max-Age': 2592000,
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
