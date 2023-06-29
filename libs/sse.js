@@ -95,6 +95,10 @@ function default_1(server, events, options) {
                                 }
                                 catch (err) {
                                     console.error('ping error', err);
+                                    if (!res.writableEnded) {
+                                        res.writeHead(500);
+                                        return res.end();
+                                    }
                                 }
                             }
                         }, 20 * 1000);
@@ -108,16 +112,20 @@ function default_1(server, events, options) {
                         })
                             .catch((err) => {
                             console.error('sse onConnected error', err);
+                            res.end();
                         });
                     }
                 })
                     .catch((err) => {
                     console.error('sse unauth error', err);
+                    res.writeHead(500);
+                    return res.end();
                 });
             }
         }
         catch (err) {
             console.error(err);
+            res.end();
         }
     });
     return sseServerClients;

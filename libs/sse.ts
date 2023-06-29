@@ -128,6 +128,10 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
                     ping(id)
                   } catch (err) {
                     console.error('ping error', err)
+                    if (!res.writableEnded) {
+                      res.writeHead(500)
+                      return res.end()
+                    }
                   }
                 }
               }, 20 * 1000)
@@ -141,15 +145,19 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
                 })
                 .catch((err) => {
                   console.error('sse onConnected error', err)
+                  res.end()
                 })
             }
           })
           .catch((err) => {
             console.error('sse unauth error', err)
+            res.writeHead(500)
+            return res.end()
           })
       }
     } catch (err) {
       console.error(err)
+      res.end()
     }
   })
   return sseServerClients
