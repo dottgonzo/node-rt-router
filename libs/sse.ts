@@ -128,7 +128,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
                     ping(id)
                   } catch (err) {
                     console.error('ping error', err)
-                    if (!res.writableEnded) {
+                    if (!res.statusCode) {
                       res.writeHead(500)
                       return res.end()
                     }
