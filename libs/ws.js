@@ -96,8 +96,14 @@ function default_1(server, events, options) {
                             events
                                 .onUpgrade(wss, ws)
                                 .then((meta) => {
-                                ;
-                                ws.meta = meta;
+                                if (meta) {
+                                    ;
+                                    ws.meta = meta;
+                                }
+                                else {
+                                    ;
+                                    ws.meta = {};
+                                }
                                 wss.emit('connection', ws, request);
                             })
                                 .catch((err) => {

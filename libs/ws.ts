@@ -116,7 +116,11 @@ export default function (server: Server, events: WsEvents, options?: { serverPat
               events
                 .onUpgrade(wss, ws as unknown as WsWithData)
                 .then((meta) => {
-                  ;(ws as unknown as WsWithData).meta = meta
+                  if (meta) {
+                    ;(ws as unknown as WsWithData).meta = meta
+                  } else {
+                    ;(ws as unknown as WsWithData).meta = {}
+                  }
                   wss.emit('connection', ws, request)
                 })
                 .catch((err) => {

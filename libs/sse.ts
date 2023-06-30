@@ -43,8 +43,13 @@ async function sseHandler(
   if (onConnecting) {
     try {
       const meta = await onConnecting(req, client)
-      req.meta = meta
-      client.meta = meta
+      if (meta) {
+        req.meta = meta
+        client.meta = meta
+      } else {
+        req.meta = {}
+        client.meta = {}
+      }
     } catch (err) {
       console.error(err)
       throw err
@@ -88,7 +93,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
       }
       sseServerClients.clients = sseServerClients.clients.filter((f) => f.id !== req.id)
       console.info(
-        `sse client disconnected ${client?.id} ws clients now are ${sseServerClients?.clients?.length}`,
+        `sse client disconnected ${client?.id}, sse clients now are ${sseServerClients?.clients?.length}`,
         client?.meta
       )
     } else {
