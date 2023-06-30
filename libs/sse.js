@@ -68,7 +68,7 @@ function default_1(server, events, options) {
                 }
             }
             sseServerClients.clients = sseServerClients.clients.filter((f) => f.id !== req.id);
-            console.info(`sse client disconnected ${client?.id}, sse clients now are ${sseServerClients?.clients?.length}`, client?.meta);
+            console.info(`sse client disconnected ${client?.id}`, client?.meta, `sse clients now are ${sseServerClients.clients.length}`);
         }
         else {
             console.warn('try to close a client that is not connected', client);
@@ -85,7 +85,7 @@ function default_1(server, events, options) {
                     if (!client?.id)
                         throw new Error('sse client id is empty');
                     sseServerClients.clients.push(client);
-                    console.info(`sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`, client?.meta);
+                    console.info(`sse client connected ${client?.id}`, client?.meta, `sse clients now are ${sseServerClients.clients.length}`);
                     req.on('close', () => {
                         closeClient(r, res, client, events?.onExit);
                     });

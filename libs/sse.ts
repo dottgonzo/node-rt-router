@@ -93,8 +93,9 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
       }
       sseServerClients.clients = sseServerClients.clients.filter((f) => f.id !== req.id)
       console.info(
-        `sse client disconnected ${client?.id}, sse clients now are ${sseServerClients?.clients?.length}`,
-        client?.meta
+        `sse client disconnected ${client?.id}`,
+        client?.meta,
+        `sse clients now are ${sseServerClients.clients.length}`
       )
     } else {
       console.warn('try to close a client that is not connected', client)
@@ -112,8 +113,9 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
             if (!client?.id) throw new Error('sse client id is empty')
             sseServerClients.clients.push(client as TSseClientConnected)
             console.info(
-              `sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`,
-              client?.meta
+              `sse client connected ${client?.id}`,
+              client?.meta,
+              `sse clients now are ${sseServerClients.clients.length}`
             )
 
             req.on('close', () => {
