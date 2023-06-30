@@ -113,8 +113,7 @@ export default function (server: Server, events: TSseEvents, options?: { serverP
             sseServerClients.clients.push(client as TSseClientConnected)
             console.info(
               `sse client connected ${client?.id} sse clients now are ${sseServerClients.clients.length}`,
-              client?.meta,
-              client?.id
+              client?.meta
             )
 
             req.on('close', () => {
