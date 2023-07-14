@@ -19,7 +19,7 @@ export interface TClientConnected extends TClient {
 export type TOnConnected = (client: TClientConnected) => Promise<void>
 export type TOnConnecting = (client: TClient) => Promise<any>
 export type TOnMessage = (client: TClientConnected, data: string) => Promise<void>
-export type TOnEchoMessage = (obj: TRequestSendWithReq) => Promise<void>
+export type TOnEchoMessage = (req: IncomingMessage, obj: any) => Promise<void>
 export type TOnApiCall = (req: IncomingMessage) => Promise<void>
 
 export type TEvents = {
@@ -117,7 +117,7 @@ export default class RTServer {
               return res.end()
             }
             events
-              .onEcho?.(Object.assign(obj, { req }))
+              .onEcho?.(req, obj)
               .then(() => {
                 res.writeHead(200)
               })

@@ -21,7 +21,7 @@ const servers = new __1.default(server, { rt, rootPath: '/rt' }, {
         wsClient.send('ciao');
         console.log(`entered ${wsClient.id}`);
     },
-    onEcho: async (wsClient) => {
+    onEcho: async (r, wsClient) => {
         console.log(`onEcho ${wsClient.id}`);
     },
 });

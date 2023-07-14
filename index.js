@@ -75,7 +75,7 @@ class RTServer {
                             return res.end();
                         }
                         events
-                            .onEcho?.(Object.assign(obj, { req }))
+                            .onEcho?.(req, obj)
                             .then(() => {
                             res.writeHead(200);
                         })

@@ -21,7 +21,7 @@ const servers = new genServers(
       wsClient.send('ciao')
       console.log(`entered ${wsClient.id}`)
     },
-    onEcho: async (wsClient) => {
+    onEcho: async (r, wsClient) => {
       console.log(`onEcho ${wsClient.id}`)
     },
   }
