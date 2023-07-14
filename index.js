@@ -76,8 +76,14 @@ class RTServer {
                         }
                         events
                             .onEcho?.(req, obj)
-                            .then(() => {
-                            res.writeHead(200);
+                            .then((answer) => {
+                            if (answer) {
+                                res.setHeader('Content-Type', 'application/json');
+                                res.write(JSON.stringify(answer));
+                            }
+                            else {
+                                res.writeHead(200);
+                            }
                         })
                             .catch((err) => {
                             console.error('onEcho error:', err);
